@@ -1,0 +1,33 @@
+rules_version = '2';
+
+// Community Hero — hackathon-grade rules.
+// Reads are public (the map/dashboard are open). Writes are validated and the
+// API routes use the client SDK, so we keep writes permissive but shaped.
+// >>> Tighten these (require request.auth, server-only writes) before any real
+//     production deployment. <<<
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /issues/{issueId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(
+                      ['title', 'category', 'severity', 'status', 'lat', 'lng', 'geohash', 'reportedBy']
+                    )
+                    && request.resource.data.lat is number
+                    && request.resource.data.lng is number;
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    match /upvotes/{upvoteId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['issueId', 'userId']);
+      allow update, delete: if false;
+    }
+  }
+}
