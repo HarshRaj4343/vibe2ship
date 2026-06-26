@@ -42,7 +42,7 @@ echo "▶ Building + deploying to Cloud Run via Cloud Build…"
 gcloud builds submit --config cloudbuild.yaml \
   --substitutions=_REGION="$REGION",_GEMINI_API_KEY="$GEMINI_API_KEY",_FIREBASE_API_KEY="$NEXT_PUBLIC_FIREBASE_API_KEY",_FIREBASE_AUTH_DOMAIN="$NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",_FIREBASE_PROJECT_ID="$NEXT_PUBLIC_FIREBASE_PROJECT_ID",_FIREBASE_STORAGE_BUCKET="$NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET",_FIREBASE_MESSAGING_SENDER_ID="$NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID",_FIREBASE_APP_ID="$NEXT_PUBLIC_FIREBASE_APP_ID",_MAPS_API_KEY="$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY",_APP_URL="${NEXT_PUBLIC_APP_URL:-}"
 
-URL=$(gcloud run services describe community-hero --region "$REGION" --format='value(status.url)')
+URL=$(gcloud run services describe urbanpulse --region "$REGION" --format='value(status.url)')
 echo "✓ Deployed: $URL"
 echo "  Add this URL to NEXT_PUBLIC_APP_URL in .env.deploy and to your"
 echo "  Firebase Auth → Authorized domains + Google Maps key referrer list."

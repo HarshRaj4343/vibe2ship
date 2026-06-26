@@ -5,6 +5,8 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
 import { BADGES } from '@/lib/points';
+import { UserCircle } from '@/components/icons';
+import EmptyState from '@/components/EmptyState';
 
 interface Profile {
   name: string;
@@ -45,22 +47,25 @@ export default function ProfilePage() {
 
   if (loading || authLoading) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center text-slate-400">
-        Loading profile…
+      <div className="mx-auto max-w-3xl space-y-8 px-4 py-8">
+        <div className="skeleton h-28" />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="skeleton h-24" />
+          <div className="skeleton h-24" />
+        </div>
+        <div className="skeleton h-40" />
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <p className="text-4xl">🦸</p>
-        <p className="mt-3 font-medium text-slate-700">
-          You haven&apos;t reported anything yet
-        </p>
-        <p className="mt-1 text-sm text-slate-500">
-          Report your first issue to start earning points and badges.
-        </p>
+      <div className="mx-auto max-w-3xl px-4 py-16">
+        <EmptyState
+          icon={<UserCircle className="h-6 w-6" />}
+          title="You haven't reported anything yet"
+          hint="Report your first issue to start earning points and badges."
+        />
       </div>
     );
   }
@@ -69,51 +74,61 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-8">
-      <div className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-6">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 text-3xl">
-          🦸
+      <div className="flex items-center gap-4 rounded-3xl border border-white/60 bg-gradient-to-r from-sarvam-sky/25 via-white/60 to-sarvam-peach/25 p-6 shadow-[0_10px_40px_-20px_rgba(28,27,46,0.35)] backdrop-blur">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sarvam-sky/30 text-sarvam-blue">
+          <UserCircle className="h-9 w-9" />
         </div>
         <div className="flex-1">
-          <h1 className="text-xl font-bold text-slate-900">{profile.name}</h1>
-          <p className="text-xs text-slate-400">ID: {userId}</p>
+          <h1 className="font-serif text-2xl font-medium text-ink">{profile.name}</h1>
+          <p className="text-xs text-ink/40">ID: {userId}</p>
         </div>
         <div className="text-right">
-          <p className="text-3xl font-bold text-blue-600">{profile.points}</p>
-          <p className="text-xs text-slate-500">points</p>
+          <p className="bg-gradient-to-r from-sarvam-blue to-sarvam-orange bg-clip-text font-serif text-3xl font-medium text-transparent">
+            {profile.points}
+          </p>
+          <p className="text-xs text-ink/55">points</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <p className="text-sm text-slate-500">Issues reported</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">
+        <div className="glass-card p-5">
+          <p className="text-sm text-ink/55">Issues reported</p>
+          <p className="mt-1 font-serif text-2xl font-medium text-ink">
             {profile.issuesReported}
           </p>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <p className="text-sm text-slate-500">Issues verified</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">
+        <div className="glass-card p-5">
+          <p className="text-sm text-ink/55">Issues verified</p>
+          <p className="mt-1 font-serif text-2xl font-medium text-ink">
             {profile.issuesVerified}
           </p>
         </div>
       </div>
 
       <div>
-        <h2 className="mb-3 font-semibold text-slate-900">Badges</h2>
+        <h2 className="mb-3 font-semibold text-ink">Badges</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {BADGES.map((b) => {
             const earned = earnedIds.has(b.id);
             return (
               <div
                 key={b.id}
-                className={`flex flex-col items-center rounded-xl border p-4 text-center ${
+                className={`flex flex-col items-center rounded-2xl border p-4 text-center backdrop-blur ${
                   earned
-                    ? 'border-amber-200 bg-amber-50'
-                    : 'border-slate-200 bg-slate-50 opacity-50'
+                    ? 'border-sarvam-peach/60 bg-sarvam-peach/25'
+                    : 'border-white/50 bg-white/40 opacity-50'
                 }`}
               >
-                <span className="text-3xl">{earned ? '🏅' : '🔒'}</span>
-                <p className="mt-2 text-xs font-medium text-slate-700">{b.name}</p>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={b.icon}
+                  alt={b.name}
+                  className={`h-14 w-14 object-contain ${earned ? '' : 'grayscale'}`}
+                />
+                <p className="mt-2 text-xs font-medium text-ink/70">{b.name}</p>
+                {!earned && (
+                  <span className="mt-1 text-[10px] text-ink/40">Locked</span>
+                )}
               </div>
             );
           })}

@@ -7,7 +7,18 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        serif: ['var(--font-serif)', 'Georgia', 'Cambria', 'serif'],
+      },
       colors: {
+        // Sarvam-inspired palette: deep navy ink + blue→orange spectrum
+        ink: '#1c1b2e',
+        sarvam: {
+          blue: '#5b6cff',
+          sky: '#9db4ff',
+          orange: '#ff8a3d',
+          peach: '#ffd9b0',
+        },
         category: {
           pothole: '#F97316',
           water: '#3B82F6',

@@ -46,7 +46,7 @@ export async function GET() {
 
     if (issues.length === 0) {
       const empty: CityBriefing = {
-        summary: 'No open issues right now — the city is all clear. 🎉',
+        summary: 'No open issues right now — the city is all clear.',
         topActions: [],
         hotspots: [],
         departmentLoad: [],

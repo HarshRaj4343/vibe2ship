@@ -5,7 +5,7 @@
  * each browser gets a stable random citizen id persisted in localStorage. This
  * is what we pass as `reportedBy` / `userId` to the API.
  */
-const KEY = 'community-hero-user-id';
+const KEY = 'urbanpulse-user-id';
 
 /**
  * Stable per-browser anonymous id, used as a fallback identity when the citizen

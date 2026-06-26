@@ -109,7 +109,7 @@ export default function IssueMap({
       <Map
         defaultCenter={center}
         defaultZoom={13}
-        mapId="community-hero-map"
+        mapId="urbanpulse-map"
         gestureHandling="greedy"
         disableDefaultUI={false}
         className="h-full w-full"

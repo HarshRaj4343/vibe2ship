@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Mic } from './icons';
 
 /**
  * Minimal Web Speech API typings (not in the standard DOM lib).
@@ -69,10 +70,10 @@ export default function VoiceInput({
     <button
       type="button"
       onClick={toggle}
-      className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+      className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition ${
         listening
           ? 'bg-red-600 text-white'
-          : 'border border-slate-300 bg-white text-slate-600 hover:bg-slate-50'
+          : 'border border-ink/15 bg-white/70 text-ink/70 hover:bg-white'
       }`}
       title="Describe the issue by voice"
     >
@@ -81,7 +82,9 @@ export default function VoiceInput({
           <span className="h-2 w-2 animate-pulse rounded-full bg-white" /> Listening…
         </>
       ) : (
-        <>🎙️ Speak</>
+        <>
+          <Mic className="h-3.5 w-3.5" /> Speak
+        </>
       )}
     </button>
   );

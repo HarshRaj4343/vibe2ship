@@ -1,4 +1,4 @@
-# 🦸 Community Hero
+# UrbanPulse
 
 > Hyperlocal civic issue reporting powered by **Gemini Vision**, **Firebase Firestore**, **Google Maps**, and **Cloud Run**.
 > Built for the **Vibe2Ship hackathon** (Coding Ninjas × Google for Developers).
@@ -75,7 +75,7 @@ Fill in:
 1. Create a Firestore database (production or test mode).
 2. Enable **Authentication → Sign-in method → Google**. Add `localhost` and your
    Cloud Run domain under **Authentication → Settings → Authorized domains**.
-3. Create a **Map ID** in Google Cloud (Maps → Map Management) — pins use `mapId="community-hero-map"` (Advanced Markers require a Map ID).
+3. Create a **Map ID** in Google Cloud (Maps → Map Management) — pins use `mapId="urbanpulse-map"` (Advanced Markers require a Map ID).
 
 > **No Firebase Storage needed.** Firebase now gates Storage behind the paid
 > Blaze plan, so photos are compressed client-side (~800px JPEG) and stored
@@ -187,7 +187,7 @@ your Maps API key's referrer allowlist, then re-run.
 ```bash
 # 1. Build & push (pass public vars as build substitutions)
 gcloud builds submit \
-  --tag gcr.io/YOUR_GCP_PROJECT_ID/community-hero \
+  --tag gcr.io/YOUR_GCP_PROJECT_ID/urbanpulse \
   --substitutions=_MAPS_KEY=YOUR_MAPS_KEY   # if using cloudbuild.yaml; otherwise build locally:
 
 # Local build with build args, then push:
@@ -200,12 +200,12 @@ docker build \
   --build-arg NEXT_PUBLIC_FIREBASE_APP_ID=... \
   --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=... \
   --build-arg NEXT_PUBLIC_APP_URL=https://your-cloud-run-url \
-  -t gcr.io/YOUR_GCP_PROJECT_ID/community-hero .
-docker push gcr.io/YOUR_GCP_PROJECT_ID/community-hero
+  -t gcr.io/YOUR_GCP_PROJECT_ID/urbanpulse .
+docker push gcr.io/YOUR_GCP_PROJECT_ID/urbanpulse
 
 # 2. Deploy
-gcloud run deploy community-hero \
-  --image gcr.io/YOUR_GCP_PROJECT_ID/community-hero \
+gcloud run deploy urbanpulse \
+  --image gcr.io/YOUR_GCP_PROJECT_ID/urbanpulse \
   --platform managed \
   --region asia-south1 \
   --allow-unauthenticated \
@@ -232,7 +232,7 @@ After the first deploy, copy the service URL into `NEXT_PUBLIC_APP_URL` and (opt
 ## 📁 Project structure
 
 ```
-community-hero/
+urbanpulse/
 ├── app/                # App Router pages + API routes
 │   ├── api/            # analyze, issues, issues/[id], upvote
 │   ├── report/ map/ dashboard/ issue/[id]/ profile/

@@ -38,16 +38,16 @@ export default function LandingStats() {
       {items.map((it) => (
         <div
           key={it.label}
-          className="rounded-2xl border border-slate-200 bg-white/70 p-4 text-center backdrop-blur"
+          className="glass-card p-4 text-center"
         >
-          <p className="text-3xl font-extrabold text-blue-600">
+          <p className="bg-gradient-to-r from-sarvam-blue to-sarvam-orange bg-clip-text font-serif text-3xl font-medium text-transparent">
             {it.value === undefined ? (
-              <span className="inline-block h-8 w-10 animate-pulse rounded bg-slate-200" />
+              <span className="inline-block h-8 w-10 animate-pulse rounded bg-white/50" />
             ) : (
               it.value
             )}
           </p>
-          <p className="mt-1 text-xs font-medium text-slate-500">{it.label}</p>
+          <p className="mt-1 text-xs font-medium text-ink/55">{it.label}</p>
         </div>
       ))}
     </div>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { ComplaintDraft } from '@/lib/types';
+import { Mail, PenLine, Check } from './icons';
 
 export default function ComplaintDrafter({
   issueId,
@@ -55,11 +56,11 @@ export default function ComplaintDrafter({
   }
 
   return (
-    <div className="rounded-xl border border-blue-200 bg-blue-50/40 p-4">
-      <h3 className="flex items-center gap-2 font-semibold text-slate-900">
-        📨 Official complaint
+    <div className="rounded-3xl border border-sarvam-sky/40 bg-sarvam-sky/15 p-4 backdrop-blur">
+      <h3 className="flex items-center gap-2 font-semibold text-ink">
+        <Mail className="h-5 w-5 text-sarvam-blue" /> Official complaint
       </h3>
-      <p className="mt-1 text-sm text-slate-500">
+      <p className="mt-1 text-sm text-ink/55">
         Let the agent draft a formal letter to the responsible department.
       </p>
 
@@ -67,7 +68,7 @@ export default function ComplaintDrafter({
         <button
           onClick={generate}
           disabled={loading}
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:bg-slate-300"
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-ink py-2.5 text-sm font-semibold text-white transition hover:bg-ink/90 disabled:opacity-40"
         >
           {loading ? (
             <>
@@ -75,7 +76,9 @@ export default function ComplaintDrafter({
               Drafting…
             </>
           ) : (
-            '✍️ Generate complaint letter'
+            <>
+              <PenLine className="h-4 w-4" /> Generate complaint letter
+            </>
           )}
         </button>
       )}
@@ -85,27 +88,33 @@ export default function ComplaintDrafter({
       {draft && (
         <div className="mt-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="rounded-md bg-slate-900 px-2 py-1 font-mono text-xs text-white">
+            <span className="rounded-md bg-ink px-2 py-1 font-mono text-xs text-white">
               Ref: {draft.referenceId}
             </span>
-            <span className="text-xs text-slate-500">To: {draft.department}</span>
+            <span className="text-xs text-ink/55">To: {draft.department}</span>
           </div>
-          <div className="mt-3 rounded-lg border border-slate-200 bg-white p-4">
-            <p className="font-semibold text-slate-900">{draft.subject}</p>
-            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+          <div className="mt-3 rounded-2xl border border-white/60 bg-white/70 p-4">
+            <p className="font-semibold text-ink">{draft.subject}</p>
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-ink/70">
               {draft.body}
             </p>
           </div>
           <div className="mt-3 flex gap-2">
             <button
               onClick={copyText}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="flex items-center gap-1.5 rounded-full border border-ink/15 bg-white/70 px-4 py-1.5 text-sm font-medium text-ink transition hover:bg-white"
             >
-              {copied ? '✓ Copied' : 'Copy'}
+              {copied ? (
+                <>
+                  <Check className="h-4 w-4 text-emerald-600" /> Copied
+                </>
+              ) : (
+                'Copy'
+              )}
             </button>
             <button
               onClick={download}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="rounded-full border border-ink/15 bg-white/70 px-4 py-1.5 text-sm font-medium text-ink transition hover:bg-white"
             >
               Download .txt
             </button>

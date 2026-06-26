@@ -6,21 +6,26 @@ interface LeaderUser {
   badgeCount: number;
 }
 
-const MEDALS = ['🥇', '🥈', '🥉'];
+// Top-3 ranks get a colored medal-style badge (gold / silver / bronze).
+const MEDAL_STYLES = [
+  'bg-amber-100 text-amber-700 ring-1 ring-amber-300',
+  'bg-slate-100 text-slate-600 ring-1 ring-slate-300',
+  'bg-orange-100 text-orange-700 ring-1 ring-orange-300',
+];
 
 export default function LeaderboardTable({ users }: { users: LeaderUser[] }) {
   if (users.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-400">
+      <div className="rounded-2xl border border-dashed border-ink/20 p-8 text-center text-sm text-ink/40">
         No citizens on the leaderboard yet. Be the first to report an issue!
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+    <div className="glass-card overflow-hidden">
       <table className="w-full text-left text-sm">
-        <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+        <thead className="bg-white/40 text-xs uppercase tracking-wide text-ink/50">
           <tr>
             <th className="px-4 py-3">#</th>
             <th className="px-4 py-3">Citizen</th>
@@ -29,18 +34,24 @@ export default function LeaderboardTable({ users }: { users: LeaderUser[] }) {
             <th className="px-4 py-3 text-right">Points</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-white/50">
           {users.map((u, i) => (
-            <tr key={u.id} className="hover:bg-slate-50">
-              <td className="px-4 py-3 font-medium text-slate-700">
-                {MEDALS[i] ?? i + 1}
+            <tr key={u.id} className="transition hover:bg-white/40">
+              <td className="px-4 py-3">
+                <span
+                  className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${
+                    MEDAL_STYLES[i] ?? 'text-ink/50'
+                  }`}
+                >
+                  {i + 1}
+                </span>
               </td>
-              <td className="px-4 py-3 font-medium text-slate-900">{u.name}</td>
-              <td className="px-4 py-3 text-right text-slate-600">
+              <td className="px-4 py-3 font-medium text-ink">{u.name}</td>
+              <td className="px-4 py-3 text-right text-ink/60">
                 {u.issuesReported}
               </td>
-              <td className="px-4 py-3 text-right text-slate-600">{u.badgeCount}</td>
-              <td className="px-4 py-3 text-right font-semibold text-blue-600">
+              <td className="px-4 py-3 text-right text-ink/60">{u.badgeCount}</td>
+              <td className="px-4 py-3 text-right font-semibold text-sarvam-blue">
                 {u.points}
               </td>
             </tr>

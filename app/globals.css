@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #fbfcff;
+  --foreground: #1c1b2e;
 }
 
 html,
@@ -15,7 +15,15 @@ body {
 
 body {
   color: var(--foreground);
-  background: var(--background);
+  /* Sarvam-style ambient field: cool blue on the flanks, warm orange glow
+     rising from the top-center — a continuous blue→orange transition. */
+  background:
+    radial-gradient(70% 55% at 50% -8%, rgba(255, 138, 61, 0.22), transparent 72%),
+    radial-gradient(48% 42% at 8% 2%, rgba(91, 108, 255, 0.18), transparent 70%),
+    radial-gradient(48% 42% at 92% 2%, rgba(91, 108, 255, 0.18), transparent 70%),
+    var(--background);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
 }
 
 * {
@@ -27,4 +35,54 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* Accessible focus ring for keyboard users across all interactive elements. */
+@layer base {
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px theme('colors.sarvam.blue');
+    border-radius: 0.5rem;
+  }
+
+  /* Respect users who prefer reduced motion. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Reusable surface + control primitives — the Sarvam glass design system.
+   Padding/sizing stay inline at call sites; these set shape, color and depth. */
+@layer components {
+  .glass-card {
+    @apply rounded-3xl border border-white/60 bg-white/60 shadow-[0_8px_30px_-18px_rgba(28,27,46,0.3)] backdrop-blur;
+  }
+
+  /* Slightly higher elevation for hero / primary content surfaces. */
+  .glass-card-lg {
+    @apply rounded-3xl border border-white/60 bg-white/60 shadow-[0_10px_40px_-20px_rgba(28,27,46,0.35)] backdrop-blur;
+  }
+
+  .glass-card-hover {
+    @apply transition hover:bg-white/80;
+  }
+
+  .btn-primary {
+    @apply rounded-full bg-ink font-semibold text-white shadow-sm transition hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .btn-ghost {
+    @apply rounded-full border border-ink/15 bg-white/70 font-medium text-ink backdrop-blur transition hover:bg-white;
+  }
+
+  .skeleton {
+    @apply animate-pulse rounded-3xl bg-white/40;
+  }
 }

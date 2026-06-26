@@ -9,8 +9,12 @@ import type { IssueAnalysis, IssueCategory, Severity } from '@/lib/types';
 import CategoryBadge from './CategoryBadge';
 import SeverityBar from './SeverityBar';
 import PointsToast from './PointsToast';
+import { Camera, MapPin, Sparkles, AlertTriangle, ArrowRight, Check } from './icons';
 
 type Stage = 'capture' | 'analyzing' | 'review' | 'submitting' | 'rejected';
+
+const STEPS = ['Photo', 'AI triage', 'Confirm'] as const;
+const AGENT_STEPS = ['Validate', 'Categorize', 'Severity', 'Route'] as const;
 
 interface Coords {
   lat: number;
@@ -154,8 +158,17 @@ export default function IssueReportForm() {
     }
   }
 
+  const activeStep =
+    stage === 'analyzing'
+      ? 1
+      : stage === 'review' || stage === 'submitting'
+        ? 2
+        : 0;
+
   return (
     <div className="mx-auto max-w-xl space-y-5">
+      <StepIndicator active={activeStep} />
+
       {/* Image upload / preview */}
       <div
         onDragOver={(e) => {
@@ -165,8 +178,10 @@ export default function IssueReportForm() {
         onDragLeave={() => setDragActive(false)}
         onDrop={onDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 transition ${
-          dragActive ? 'border-blue-500 bg-blue-50' : 'border-slate-300 bg-white'
+        className={`flex cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed p-6 backdrop-blur transition ${
+          dragActive
+            ? 'border-sarvam-blue bg-sarvam-sky/15'
+            : 'border-ink/20 bg-white/50'
         }`}
       >
         {preview ? (
@@ -178,11 +193,11 @@ export default function IssueReportForm() {
           />
         ) : (
           <div className="py-8 text-center">
-            <p className="text-3xl">📷</p>
-            <p className="mt-2 font-medium text-slate-700">
+            <Camera className="mx-auto h-8 w-8 text-ink/40" />
+            <p className="mt-2 font-medium text-ink/70">
               Drag &amp; drop a photo, or tap to choose
             </p>
-            <p className="text-sm text-slate-400">Show the civic issue clearly</p>
+            <p className="text-sm text-ink/40">Show the civic issue clearly</p>
           </div>
         )}
         <input
@@ -200,22 +215,22 @@ export default function IssueReportForm() {
 
       {/* Location status */}
       <div className="flex items-center gap-2 text-sm">
-        <span>📍</span>
+        <MapPin className="h-4 w-4 text-sarvam-blue" />
         {coords ? (
-          <span className="text-slate-600">
+          <span className="text-ink/65">
             Location captured ({coords.lat.toFixed(4)}, {coords.lng.toFixed(4)})
           </span>
         ) : (
-          <span className="text-amber-600">{geoError ?? 'Detecting location…'}</span>
+          <span className="text-sarvam-orange">{geoError ?? 'Detecting location…'}</span>
         )}
       </div>
 
       {/* Description */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-slate-600">
+          <label className="text-sm font-medium text-ink/65">
             Description{' '}
-            <span className="font-normal text-slate-400">(optional)</span>
+            <span className="font-normal text-ink/40">(optional)</span>
           </label>
           <VoiceInput
             onTranscript={(t) =>
@@ -226,9 +241,9 @@ export default function IssueReportForm() {
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Type, or tap 🎙️ Speak to describe by voice…"
+          placeholder="Type, or tap Speak to describe by voice…"
           rows={3}
-          className="w-full rounded-xl border border-slate-300 p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full rounded-2xl border border-ink/15 bg-white/60 p-3 text-sm backdrop-blur focus:border-sarvam-blue focus:outline-none focus:ring-1 focus:ring-sarvam-blue"
         />
       </div>
 
@@ -241,23 +256,46 @@ export default function IssueReportForm() {
         <button
           onClick={runAnalysis}
           disabled={!file || stage === 'analyzing'}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="btn-primary flex w-full items-center justify-center gap-2 py-3.5"
         >
           {stage === 'analyzing' ? (
             <>
               <Spinner /> AI is analyzing your photo…
             </>
           ) : (
-            '✨ Analyze with AI'
+            <>
+              <Sparkles className="h-4 w-4" /> Analyze with AI
+            </>
           )}
         </button>
+      )}
+
+      {/* Live view of the 4-step agent while it works */}
+      {stage === 'analyzing' && (
+        <div className="glass-card space-y-2 p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sarvam-blue">
+            Gemini Vision agent · running
+          </p>
+          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {AGENT_STEPS.map((label, i) => (
+              <li
+                key={label}
+                className="flex items-center gap-2 rounded-2xl bg-white/50 px-3 py-2 text-xs text-ink/70"
+                style={{ animation: `toast-in 0.4s ease-out ${i * 0.12}s both` }}
+              >
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-sarvam-orange" />
+                {label}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {/* AI rejection */}
       {stage === 'rejected' && analysis && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4">
-          <p className="font-semibold text-red-700">
-            ⚠️ This doesn&apos;t look like a reportable civic issue
+          <p className="flex items-center gap-2 font-semibold text-red-700">
+            <AlertTriangle className="h-4 w-4" /> This doesn&apos;t look like a reportable civic issue
           </p>
           <p className="mt-1 text-sm text-red-600">
             {analysis.rejectionReason ?? analysis.reasoning}
@@ -276,10 +314,10 @@ export default function IssueReportForm() {
 
       {/* AI result + confirm */}
       {(stage === 'review' || stage === 'submitting') && analysis && (
-        <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+        <div className="glass-card-lg space-y-4 p-5">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-slate-900">AI Analysis</h3>
-            <span className="text-xs text-slate-400">
+            <h3 className="font-semibold text-ink">AI Analysis</h3>
+            <span className="text-xs text-ink/40">
               {Math.round(analysis.confidence * 100)}% confidence
             </span>
           </div>
@@ -287,33 +325,35 @@ export default function IssueReportForm() {
           <div className="flex flex-wrap items-center gap-2">
             <CategoryBadge category={analysis.category as IssueCategory} />
             {analysis.safetyRisk && (
-              <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
-                ⚠️ Safety risk
+              <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
+                <AlertTriangle className="h-3.5 w-3.5" /> Safety risk
               </span>
             )}
           </div>
 
           <SeverityBar severity={analysis.severity} />
 
-          <div className="rounded-lg bg-slate-50 p-3 text-sm">
-            <p className="font-medium text-slate-700">{analysis.suggestedTitle}</p>
-            <p className="mt-1 text-slate-500">{analysis.reasoning}</p>
-            <p className="mt-2 text-xs font-medium text-blue-600">
-              → Routing to: {analysis.routeTo}
+          <div className="rounded-2xl bg-white/50 p-3 text-sm">
+            <p className="font-medium text-ink">{analysis.suggestedTitle}</p>
+            <p className="mt-1 text-ink/60">{analysis.reasoning}</p>
+            <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-sarvam-blue">
+              <ArrowRight className="h-3.5 w-3.5" /> Routing to: {analysis.routeTo}
             </p>
           </div>
 
           <button
             onClick={submitIssue}
             disabled={stage === 'submitting'}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 py-3 font-semibold text-white transition hover:bg-green-700 disabled:bg-slate-300"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-green-600 py-3.5 font-semibold text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {stage === 'submitting' ? (
               <>
                 <Spinner /> Submitting…
               </>
             ) : (
-              '✅ Confirm & Submit'
+              <>
+                <Check className="h-4 w-4" /> Confirm &amp; Submit
+              </>
             )}
           </button>
         </div>
@@ -333,5 +373,41 @@ export default function IssueReportForm() {
 function Spinner() {
   return (
     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+  );
+}
+
+function StepIndicator({ active }: { active: number }) {
+  return (
+    <div className="flex items-center">
+      {STEPS.map((label, i) => (
+        <div key={label} className="flex flex-1 items-center last:flex-none">
+          <div className="flex items-center gap-2">
+            <span
+              className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition ${
+                i <= active
+                  ? 'bg-gradient-to-br from-sarvam-blue to-sarvam-orange text-white'
+                  : 'bg-ink/10 text-ink/40'
+              }`}
+            >
+              {i + 1}
+            </span>
+            <span
+              className={`text-sm font-medium ${
+                i <= active ? 'text-ink' : 'text-ink/40'
+              }`}
+            >
+              {label}
+            </span>
+          </div>
+          {i < STEPS.length - 1 && (
+            <div
+              className={`mx-3 h-0.5 flex-1 rounded-full transition ${
+                i < active ? 'bg-sarvam-blue' : 'bg-ink/10'
+              }`}
+            />
+          )}
+        </div>
+      ))}
+    </div>
   );
 }

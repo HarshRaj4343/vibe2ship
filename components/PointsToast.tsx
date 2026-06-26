@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { Sparkles } from './icons';
 
 export default function PointsToast({
   points,
@@ -18,11 +19,11 @@ export default function PointsToast({
 
   return (
     <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
-      <div className="animate-toast-in flex items-center gap-3 rounded-xl bg-slate-900 px-5 py-3 text-white shadow-2xl">
-        <span className="text-2xl">🎉</span>
+      <div className="animate-toast-in flex items-center gap-3 rounded-full bg-ink px-5 py-3 text-white shadow-2xl">
+        <Sparkles className="h-6 w-6 text-sarvam-peach" />
         <div>
           <p className="text-sm font-semibold">+{points} points!</p>
-          {message && <p className="text-xs text-slate-300">{message}</p>}
+          {message && <p className="text-xs text-white/70">{message}</p>}
         </div>
       </div>
     </div>

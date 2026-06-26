@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Community Hero — hackathon-grade rules.
+// UrbanPulse — hackathon-grade rules.
 // Reads are public (the map/dashboard are open). Writes are validated and the
 // API routes use the client SDK, so we keep writes permissive but shaped.
 // >>> Tighten these (require request.auth, server-only writes) before any real

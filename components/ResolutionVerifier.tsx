@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { compressImageToDataUrl } from '@/lib/image';
 import type { ResolutionVerification } from '@/lib/types';
+import { Search, Camera, Check, AlertTriangle } from './icons';
 
 type Stage = 'idle' | 'verifying' | 'done';
 
@@ -44,11 +45,11 @@ export default function ResolutionVerifier({
   }
 
   return (
-    <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
-      <h3 className="flex items-center gap-2 font-semibold text-slate-900">
-        🔍 AI Resolution Verification
+    <div className="rounded-3xl border border-emerald-200/70 bg-emerald-50/40 p-4 backdrop-blur">
+      <h3 className="flex items-center gap-2 font-semibold text-ink">
+        <Search className="h-5 w-5 text-emerald-600" /> AI Resolution Verification
       </h3>
-      <p className="mt-1 text-sm text-slate-500">
+      <p className="mt-1 text-sm text-ink/55">
         Upload an &ldquo;after&rdquo; photo and the agent will compare it to the
         original to confirm the fix.
       </p>
@@ -58,7 +59,7 @@ export default function ResolutionVerifier({
           <button
             onClick={() => fileRef.current?.click()}
             disabled={stage === 'verifying'}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:bg-slate-300"
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-emerald-600 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-40"
           >
             {stage === 'verifying' ? (
               <>
@@ -66,7 +67,9 @@ export default function ResolutionVerifier({
                 Agent comparing photos…
               </>
             ) : (
-              '📸 Upload “after” photo'
+              <>
+                <Camera className="h-4 w-4" /> Upload “after” photo
+              </>
             )}
           </button>
           <input
@@ -104,14 +107,19 @@ export default function ResolutionVerifier({
                     : 'bg-amber-100 text-amber-700'
                 }`}
               >
-                {result.isResolved ? '✅' : '⚠️'} {result.verdict}
+                {result.isResolved ? (
+                  <Check className="h-3.5 w-3.5" />
+                ) : (
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                )}{' '}
+                {result.verdict}
               </span>
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-1 text-xs text-ink/40">
                 {Math.round(result.confidence * 100)}% confidence
               </p>
             </div>
           </div>
-          <p className="text-sm text-slate-600">{result.reasoning}</p>
+          <p className="text-sm text-ink/65">{result.reasoning}</p>
           {result.remainingIssues &&
             result.remainingIssues.toLowerCase() !== 'none' && (
               <p className="text-sm text-amber-700">

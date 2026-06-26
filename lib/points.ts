@@ -11,13 +11,14 @@ export interface BadgeDefinition {
   name: string;
   threshold: number;
   field: 'issuesReported' | 'issuesVerified';
+  icon: string; // path under /public
 }
 
 export const BADGES: BadgeDefinition[] = [
-  { id: 'first_report', name: 'First Report', threshold: 1, field: 'issuesReported' },
-  { id: 'civic_hero', name: 'Civic Hero', threshold: 10, field: 'issuesReported' },
-  { id: 'watchdog', name: 'Community Watchdog', threshold: 25, field: 'issuesReported' },
-  { id: 'verifier', name: 'Verified Verifier', threshold: 10, field: 'issuesVerified' },
+  { id: 'first_report', name: 'First Report', threshold: 1, field: 'issuesReported', icon: '/badges/first_report.png' },
+  { id: 'civic_hero', name: 'Civic Hero', threshold: 10, field: 'issuesReported', icon: '/badges/civic_hero.png' },
+  { id: 'watchdog', name: 'Community Watchdog', threshold: 25, field: 'issuesReported', icon: '/badges/watchdog.png' },
+  { id: 'verifier', name: 'Verified Verifier', threshold: 10, field: 'issuesVerified', icon: '/badges/verifier.png' },
 ];
 
 /**

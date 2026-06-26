@@ -12,6 +12,8 @@ import ComplaintDrafter from '@/components/ComplaintDrafter';
 import { useAuth } from '@/lib/auth';
 import type { IssueStatus, ResolutionVerification, SerializedIssue } from '@/lib/types';
 import { STATUS_LABELS } from '@/lib/types';
+import EmptyState from '@/components/EmptyState';
+import { HelpCircle, AlertTriangle, Check, Bot, ArrowUp } from '@/components/icons';
 
 const STATUS_ORDER: IssueStatus[] = ['open', 'in_progress', 'resolved'];
 
@@ -83,17 +85,27 @@ export default function IssueDetailPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center text-slate-400">
-        Loading issue…
+      <div className="mx-auto max-w-3xl space-y-5 px-4 py-8">
+        <div className="skeleton h-72" />
+        <div className="skeleton h-7 w-24" />
+        <div className="skeleton h-9 w-3/4" />
+        <div className="skeleton h-20" />
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="skeleton h-40" />
+          <div className="skeleton h-40" />
+        </div>
       </div>
     );
   }
 
   if (notFound || !issue) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <p className="text-4xl">🤷</p>
-        <p className="mt-3 font-medium text-slate-700">Issue not found</p>
+      <div className="mx-auto max-w-3xl px-4 py-16">
+        <EmptyState
+          icon={<HelpCircle className="h-6 w-6" />}
+          title="Issue not found"
+          hint="It may have been resolved and archived, or the link is incorrect."
+        />
       </div>
     );
   }
@@ -115,51 +127,53 @@ export default function IssueDetailPage() {
         <CategoryBadge category={issue.category} />
         <StatusBadge status={issue.status} />
         {issue.aiAnalysis?.safetyRisk && (
-          <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
-            ⚠️ Safety risk
+          <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
+            <AlertTriangle className="h-3.5 w-3.5" /> Safety risk
           </span>
         )}
       </div>
 
-      <h1 className="mt-3 text-2xl font-bold text-slate-900">{issue.title}</h1>
+      <h1 className="mt-3 font-serif text-3xl font-medium text-ink">{issue.title}</h1>
       <div className="mt-2">
         <SeverityBar severity={issue.severity} />
       </div>
       {issue.description && (
-        <p className="mt-3 text-slate-600">{issue.description}</p>
+        <p className="mt-3 text-ink/65">{issue.description}</p>
       )}
 
       <div className="mt-4 flex items-center gap-3">
         <button
           onClick={upvote}
           disabled={voting}
-          className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:bg-slate-300"
+          className="btn-primary flex items-center gap-1.5 px-5 py-2 text-sm"
         >
-          ▲ Upvote ({issue.upvoteCount})
+          <ArrowUp className="h-4 w-4" /> Upvote ({issue.upvoteCount})
         </button>
-        <span className="text-sm text-slate-500">
-          ✓ {issue.verifiedCount} community verifications
+        <span className="flex items-center gap-1.5 text-sm text-ink/55">
+          <Check className="h-4 w-4 text-emerald-600" /> {issue.verifiedCount} community verifications
         </span>
       </div>
 
       {/* AI analysis accordion */}
-      <div className="mt-6 rounded-xl border border-slate-200 bg-white">
+      <div className="glass-card mt-6">
         <button
           onClick={() => setShowReasoning((v) => !v)}
-          className="flex w-full items-center justify-between p-4 text-left font-semibold text-slate-900"
+          className="flex w-full items-center justify-between p-4 text-left font-semibold text-ink"
         >
-          <span>🤖 AI analysis &amp; reasoning</span>
+          <span className="flex items-center gap-2">
+            <Bot className="h-5 w-5 text-sarvam-blue" /> AI analysis &amp; reasoning
+          </span>
           <span>{showReasoning ? '−' : '+'}</span>
         </button>
         {showReasoning && (
-          <div className="space-y-2 border-t border-slate-100 p-4 text-sm text-slate-600">
+          <div className="space-y-2 border-t border-white/50 p-4 text-sm text-ink/65">
             <p>{issue.aiAnalysis?.reasoning}</p>
             <p>
-              <span className="font-medium text-slate-700">Confidence:</span>{' '}
+              <span className="font-medium text-ink">Confidence:</span>{' '}
               {Math.round((issue.aiAnalysis?.confidence ?? 0) * 100)}%
             </p>
             <p>
-              <span className="font-medium text-slate-700">Routed to:</span>{' '}
+              <span className="font-medium text-ink">Routed to:</span>{' '}
               {issue.assignedDept}
             </p>
           </div>
@@ -188,20 +202,22 @@ export default function IssueDetailPage() {
 
       {/* Status timeline */}
       <div className="mt-6">
-        <h2 className="mb-3 font-semibold text-slate-900">Status timeline</h2>
+        <h2 className="mb-3 font-semibold text-ink">Status timeline</h2>
         <div className="flex items-center">
           {STATUS_ORDER.map((s, i) => (
             <div key={s} className="flex flex-1 items-center last:flex-none">
               <button
                 onClick={() => updateStatus(s)}
                 className={`flex flex-col items-center ${
-                  i <= currentStep ? 'text-blue-600' : 'text-slate-300'
+                  i <= currentStep ? 'text-sarvam-blue' : 'text-ink/30'
                 }`}
                 title="Click to set status"
               >
                 <span
                   className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${
-                    i <= currentStep ? 'bg-blue-600 text-white' : 'bg-slate-200'
+                    i <= currentStep
+                      ? 'bg-gradient-to-br from-sarvam-blue to-sarvam-orange text-white'
+                      : 'bg-ink/10'
                   }`}
                 >
                   {i + 1}
@@ -211,7 +227,7 @@ export default function IssueDetailPage() {
               {i < STATUS_ORDER.length - 1 && (
                 <div
                   className={`mx-2 h-0.5 flex-1 ${
-                    i < currentStep ? 'bg-blue-600' : 'bg-slate-200'
+                    i < currentStep ? 'bg-sarvam-blue' : 'bg-ink/10'
                   }`}
                 />
               )}
@@ -222,8 +238,8 @@ export default function IssueDetailPage() {
 
       {/* Location */}
       <div className="mt-6">
-        <h2 className="mb-3 font-semibold text-slate-900">Location</h2>
-        <div className="h-64 overflow-hidden rounded-xl border border-slate-200">
+        <h2 className="mb-3 font-semibold text-ink">Location</h2>
+        <div className="h-64 overflow-hidden rounded-3xl border border-white/60">
           <IssueMap issues={[issue]} selectedId={issue.id} />
         </div>
       </div>

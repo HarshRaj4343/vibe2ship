@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
+import { UserCircle } from '@/components/icons';
 
 export default function AuthNav() {
   const { identity, loading, signIn, logout } = useAuth();
@@ -35,9 +36,8 @@ export default function AuthNav() {
             }
           }}
           disabled={busy}
-          className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+          className="flex items-center gap-2 rounded-full border border-ink/15 bg-white/80 px-4 py-1.5 text-sm font-medium text-ink transition hover:bg-white disabled:opacity-60"
         >
-          <span className="text-base">🔓</span>
           {busy ? 'Signing in…' : 'Sign in'}
         </button>
         {err && (
@@ -59,13 +59,13 @@ export default function AuthNav() {
           className="h-8 w-8 rounded-full"
         />
       ) : (
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm">
-          🦸
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sarvam-sky/40 text-sarvam-blue">
+          <UserCircle className="h-5 w-5" />
         </div>
       )}
       <button
         onClick={() => logout()}
-        className="rounded-lg px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100"
+        className="rounded-full px-3 py-1 text-xs font-medium text-ink/60 transition hover:bg-white/60 hover:text-ink"
         title={identity.name}
       >
         Sign out

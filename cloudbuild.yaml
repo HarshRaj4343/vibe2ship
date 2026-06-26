@@ -12,14 +12,14 @@
 #_FIREBASE_MESSAGING_SENDER_ID=xxx,\
 #_FIREBASE_APP_ID=xxx,\
 #_MAPS_API_KEY=xxx,\
-#_APP_URL=https://community-hero-xxxxx.run.app
+#_APP_URL=https://urbanpulse-xxxxx.run.app
 #
 # Tip: keep the substitutions in a file and pass --substitutions-file is not
 # supported, so use the gcloud-deploy.sh helper which reads .env.deploy.
 
 substitutions:
   _REGION: 'asia-south1'
-  _SERVICE: 'community-hero'
+  _SERVICE: 'urbanpulse'
   _GEMINI_API_KEY: ''
   _FIREBASE_API_KEY: ''
   _FIREBASE_AUTH_DOMAIN: ''
