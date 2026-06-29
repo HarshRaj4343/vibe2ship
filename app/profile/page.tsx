@@ -108,22 +108,25 @@ export default function ProfilePage() {
       <div>
         <h2 className="mb-3 font-semibold text-ink">Badges</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {BADGES.map((b) => {
+          {BADGES.map((b, i) => {
             const earned = earnedIds.has(b.id);
             return (
               <div
                 key={b.id}
-                className={`flex flex-col items-center rounded-2xl border p-4 text-center backdrop-blur ${
+                style={{ animationDelay: `${i * 90}ms` }}
+                className={`group flex animate-fade-up flex-col items-center rounded-2xl border p-4 text-center backdrop-blur transition duration-300 ${
                   earned
-                    ? 'border-sarvam-peach/60 bg-sarvam-peach/25'
-                    : 'border-white/50 bg-white/40 opacity-50'
+                    ? 'border-sarvam-peach/60 bg-sarvam-peach/25 hover:-translate-y-1 hover:shadow-[0_16px_40px_-20px_rgba(255,138,61,0.6)]'
+                    : 'border-white/50 bg-white/40 opacity-50 hover:opacity-70'
                 }`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={b.icon}
                   alt={b.name}
-                  className={`h-14 w-14 object-contain ${earned ? '' : 'grayscale'}`}
+                  className={`h-14 w-14 object-contain transition-transform duration-300 ${
+                    earned ? 'group-hover:scale-110 group-hover:-rotate-6' : 'grayscale'
+                  }`}
                 />
                 <p className="mt-2 text-xs font-medium text-ink/70">{b.name}</p>
                 {!earned && (

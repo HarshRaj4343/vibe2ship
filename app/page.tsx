@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import LandingStats from '@/components/LandingStats';
+import Reveal from '@/components/Reveal';
 import { Search, Radar, Mail, Mic } from '@/components/icons';
 
 const PIPELINE = [
@@ -75,39 +76,56 @@ export default function Home() {
     <div className="relative overflow-hidden">
       <div className="mx-auto max-w-6xl px-4">
         <section className="py-20 text-center sm:py-28">
-          <Flourish />
-          <p className="mt-6 font-medium text-sarvam-blue">
+          <div className="animate-float">
+            <Flourish />
+          </div>
+          <p
+            className="mt-6 animate-fade-up font-medium text-sarvam-blue"
+            style={{ animationDelay: '60ms' }}
+          >
             India&apos;s civic resolution agent
           </p>
-          <h1 className="mx-auto mt-5 max-w-3xl font-serif text-5xl font-medium leading-[1.05] tracking-tight text-ink sm:text-7xl">
+          <h1
+            className="mx-auto mt-5 max-w-3xl animate-fade-up font-serif text-5xl font-medium leading-[1.05] tracking-tight text-ink sm:text-7xl"
+            style={{ animationDelay: '140ms' }}
+          >
             Civic action for all
           </h1>
-          <p className="mx-auto mt-6 max-w-xl text-lg text-ink/70">
+          <p
+            className="mx-auto mt-6 max-w-xl animate-fade-up text-lg text-ink/70"
+            style={{ animationDelay: '220ms' }}
+          >
             Snap a photo. An autonomous AI agent validates, triages, routes and
             drafts the complaint — then confirms it was actually resolved.
           </p>
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+          <div
+            className="mt-9 flex animate-fade-up flex-wrap items-center justify-center gap-3"
+            style={{ animationDelay: '300ms' }}
+          >
             <Link
               href="/report"
-              className="btn-primary px-7 py-3.5"
+              className="btn-primary px-7 py-3.5 transition hover:-translate-y-0.5 hover:shadow-lg"
             >
               Report an issue
             </Link>
             <Link
               href="/command"
-              className="btn-ghost flex items-center gap-2 px-7 py-3.5"
+              className="btn-ghost flex items-center gap-2 px-7 py-3.5 transition hover:-translate-y-0.5"
             >
               <Radar className="h-4 w-4" /> Command Center
             </Link>
           </div>
 
-          <div className="mt-14">
+          <div
+            className="mt-14 animate-fade-up"
+            style={{ animationDelay: '380ms' }}
+          >
             <LandingStats />
           </div>
         </section>
 
         {/* Tech strip */}
-        <section className="pb-16">
+        <Reveal as="section" className="pb-16">
           <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-ink/40">
             Built with sovereign-scale Google AI
           </p>
@@ -115,59 +133,61 @@ export default function Home() {
             {PARTNERS.map((p) => (
               <span
                 key={p}
-                className="text-sm font-semibold tracking-tight text-ink/45"
+                className="text-sm font-semibold tracking-tight text-ink/45 transition-colors hover:text-sarvam-blue"
               >
                 {p}
               </span>
             ))}
           </div>
-        </section>
+        </Reveal>
 
         {/* Agent pipeline */}
         <section className="pb-16">
-          <h2 className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-ink/40">
-            The 4-step Gemini Vision agent
-          </h2>
+          <Reveal>
+            <h2 className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-ink/40">
+              The 4-step Gemini Vision agent
+            </h2>
+          </Reveal>
           <div className="mx-auto mt-7 grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-4">
-            {PIPELINE.map((p) => (
-              <div
-                key={p.n}
-                className="glass-card p-5 text-center"
-              >
-                <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-sarvam-blue to-sarvam-orange font-bold text-white">
-                  {p.n}
-                </span>
-                <h3 className="mt-3 font-semibold text-ink">{p.title}</h3>
-                <p className="mt-1 text-xs text-ink/55">{p.body}</p>
-              </div>
+            {PIPELINE.map((p, i) => (
+              <Reveal key={p.n} delay={i * 0.08}>
+                <div className="glass-card hover-lift h-full p-5 text-center">
+                  <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-sarvam-blue to-sarvam-orange font-bold text-white">
+                    {p.n}
+                  </span>
+                  <h3 className="mt-3 font-semibold text-ink">{p.title}</h3>
+                  <p className="mt-1 text-xs text-ink/55">{p.body}</p>
+                </div>
+              </Reveal>
             ))}
           </div>
         </section>
 
         {/* Hero features */}
         <section className="pb-28">
-          <h2 className="text-center font-serif text-3xl font-medium text-ink sm:text-4xl">
-            Not just reporting — an autonomous resolution platform
-          </h2>
+          <Reveal>
+            <h2 className="text-center font-serif text-3xl font-medium text-ink sm:text-4xl">
+              Not just reporting — an autonomous resolution platform
+            </h2>
+          </Reveal>
           <div className="mt-10 grid gap-5 sm:grid-cols-2">
-            {FEATURES.map((f) => (
-              <div
-                key={f.title}
-                className="glass-card-lg glass-card-hover p-6"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sarvam-sky/25 text-sarvam-blue">
-                    <f.Icon className="h-5 w-5" />
-                  </span>
-                  <span className="rounded-full bg-sarvam-peach/40 px-3 py-1 text-xs font-medium text-ink/70">
-                    {f.tag}
-                  </span>
+            {FEATURES.map((f, i) => (
+              <Reveal key={f.title} delay={i * 0.08}>
+                <div className="glass-card-lg hover-lift group h-full p-6">
+                  <div className="flex items-center justify-between">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sarvam-sky/25 text-sarvam-blue transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                      <f.Icon className="h-5 w-5" />
+                    </span>
+                    <span className="rounded-full bg-sarvam-peach/40 px-3 py-1 text-xs font-medium text-ink/70">
+                      {f.tag}
+                    </span>
+                  </div>
+                  <h3 className="mt-4 text-lg font-semibold text-ink">
+                    {f.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-ink/65">{f.body}</p>
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-ink">
-                  {f.title}
-                </h3>
-                <p className="mt-2 text-sm text-ink/65">{f.body}</p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </section>

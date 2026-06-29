@@ -9,7 +9,7 @@ export default function IssueCard({ issue }: { issue: SerializedIssue }) {
   return (
     <Link
       href={`/issue/${issue.id}`}
-      className="group glass-card glass-card-hover flex gap-4 p-4"
+      className="group glass-card glass-card-hover hover-lift flex gap-4 p-4"
     >
       {issue.imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
