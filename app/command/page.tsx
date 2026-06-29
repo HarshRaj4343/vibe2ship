@@ -2,22 +2,48 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import type { CityBriefing } from '@/lib/types';
-import { Radar, RotateCw, Target, Flame, Building } from '@/components/icons';
+import type { AgentStep, CityBriefing } from '@/lib/types';
+import AgentTrace from '@/components/AgentTrace';
+import { Radar, RotateCw, Target, Flame, Building, Bot } from '@/components/icons';
 
 export default function CommandCenterPage() {
   const [briefing, setBriefing] = useState<CityBriefing | null>(null);
+  const [steps, setSteps] = useState<AgentStep[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setSteps([]);
+    setBriefing(null);
     try {
-      const res = await fetch('/api/briefing', { cache: 'no-store' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Failed');
-      setBriefing(data.briefing);
+      const res = await fetch('/api/briefing/stream', { cache: 'no-store' });
+      if (!res.ok || !res.body) throw new Error('Failed to start the agent');
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const frames = buffer.split('\n\n');
+        buffer = frames.pop() ?? '';
+        for (const frame of frames) {
+          const line = frame.split('\n').find((l) => l.startsWith('data: '));
+          if (!line) continue;
+          const payload = JSON.parse(line.slice(6));
+          if (payload.type === 'step') {
+            setSteps((prev) => [...prev, payload.step]);
+          } else if (payload.type === 'result') {
+            setBriefing(payload.briefing);
+          } else if (payload.type === 'error') {
+            setError(payload.error ?? 'Failed to load briefing');
+          }
+        }
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load briefing');
     } finally {
@@ -65,10 +91,28 @@ export default function CommandCenterPage() {
         </button>
       </div>
 
-      {loading && (
-        <div className="mt-8 space-y-4">
-          <div className="skeleton h-24" />
-          <div className="skeleton h-64" />
+      {/* Live planning trace — streamed as the agent reasons step by step. */}
+      {(loading || steps.length > 0) && !briefing && (
+        <div className="glass-card-lg mt-8 space-y-4 p-5">
+          <div className="flex items-center justify-between">
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-sarvam-blue">
+              <Bot className="h-4 w-4" /> Planning agent {loading ? '· live' : ''}
+            </p>
+            {loading && (
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sarvam-blue opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-sarvam-blue" />
+              </span>
+            )}
+          </div>
+          {steps.length > 0 ? (
+            <AgentTrace steps={steps} running={loading} />
+          ) : (
+            <div className="space-y-3">
+              <div className="skeleton h-6 w-2/3" />
+              <div className="skeleton h-6 w-1/2" />
+            </div>
+          )}
         </div>
       )}
 

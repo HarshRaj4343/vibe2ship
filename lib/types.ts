@@ -80,6 +80,54 @@ export interface CityBriefing {
   generatedAt: number;
 }
 
+/**
+ * One entry in the agent's reasoning trace. The intake agent (lib/agent.ts)
+ * emits these as it thinks, calls a tool, and reads the result, so the chain of
+ * reasoning can be streamed live and persisted onto the issue for later replay.
+ */
+export type AgentStepKind =
+  | 'thought' // the model reasoning before/after an action
+  | 'tool_call' // the model decided to invoke a tool
+  | 'tool_result' // the result returned to the model
+  | 'decision' // a branch the agent took (e.g. duplicate vs new)
+  | 'final' // the agent's closing summary
+  | 'error'; // a step that failed
+
+export interface AgentStep {
+  id: string;
+  kind: AgentStepKind;
+  title: string;
+  detail?: string;
+  tool?: string; // tool name for tool_call / tool_result
+  args?: unknown; // arguments the model passed to the tool
+  result?: unknown; // value the tool returned
+  status: 'running' | 'done' | 'error';
+  at: number; // epoch millis
+}
+
+/**
+ * The human-in-the-loop dispatch checkpoint. The autonomous loop drafts a
+ * complaint and queues it; a human approves before it is "dispatched" to the
+ * department.
+ */
+/**
+ * Lightweight agent "memory": an estimate of how long this issue will take to
+ * resolve, derived from past resolved issues of the same category.
+ */
+export interface ResolutionEstimate {
+  etaDays: number;
+  basis: string; // human-readable explanation, e.g. "avg of 4 resolved potholes"
+  sampleSize: number;
+}
+
+export interface DispatchState {
+  status: 'queued' | 'approved' | 'rejected' | 'dispatched';
+  complaintRef?: string; // the complaint reference id
+  queuedAt: number;
+  decidedAt?: number;
+  decidedBy?: string; // uid of the approver
+}
+
 export interface Issue {
   id: string;
   title: string;
@@ -98,6 +146,9 @@ export interface Issue {
   aiAnalysis: StoredAiAnalysis;
   resolution?: ResolutionVerification; // set when AI-verified as fixed
   complaint?: ComplaintDraft; // set when a complaint letter is drafted
+  agentTrace?: AgentStep[]; // set when created via the autonomous agent (/agent)
+  dispatch?: DispatchState; // human-approval checkpoint for complaint dispatch
+  resolutionEstimate?: ResolutionEstimate; // agent memory: ETA from past issues
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

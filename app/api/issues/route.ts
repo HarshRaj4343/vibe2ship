@@ -1,23 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   collection,
-  addDoc,
   getDocs,
   query,
   where,
   orderBy,
   serverTimestamp,
   doc,
-  getDoc,
-  setDoc,
   updateDoc,
   increment,
-  arrayUnion,
   Timestamp,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { getGeohash, findDuplicateIssue } from '@/lib/geo';
-import { POINTS, eligibleBadges } from '@/lib/points';
+import { findDuplicateIssue } from '@/lib/geo';
+import { POINTS } from '@/lib/points';
+import { awardPoints, createIssueDoc } from '@/lib/server/issues';
 import type { CreateIssuePayload, IssueCategory } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -125,88 +122,24 @@ export async function POST(req: NextRequest) {
     }
 
     // --- Create a fresh issue ---
-    const geohash = getGeohash(lat, lng);
-    const docRef = await addDoc(collection(db, 'issues'), {
+    const id = await createIssueDoc({
       title,
-      description: description ?? '',
+      description,
       category,
       severity,
-      status: 'open',
-      imageUrl: imageUrl ?? '',
+      imageUrl,
       lat,
       lng,
-      geohash,
-      upvoteCount: 0,
-      verifiedCount: 0,
       reportedBy,
       assignedDept: assignedDept ?? aiAnalysis?.routeTo ?? 'Municipal Corporation',
       aiAnalysis: aiAnalysis ?? {},
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
     });
 
     await awardPoints(reportedBy, POINTS.REPORT_ISSUE, 'report', profile);
 
-    return NextResponse.json({ id: docRef.id, deduplicated: false }, { status: 201 });
+    return NextResponse.json({ id, deduplicated: false }, { status: 201 });
   } catch (err) {
     console.error('Failed to create issue:', err);
     return NextResponse.json({ error: 'Failed to create issue' }, { status: 500 });
-  }
-}
-
-/**
- * Increment a user's counters + points, then award any newly-earned badges.
- * Creates the user document on first activity.
- */
-async function awardPoints(
-  userId: string,
-  basePoints: number,
-  kind: 'report' | 'verify',
-  profile?: { name?: string; email?: string },
-): Promise<void> {
-  const userRef = doc(db, 'users', userId);
-  const userSnap = await getDoc(userRef);
-
-  const counterField = kind === 'report' ? 'issuesReported' : 'issuesVerified';
-
-  if (!userSnap.exists()) {
-    const isFirstReport = kind === 'report';
-    await setDoc(userRef, {
-      name: profile?.name || 'Anonymous Citizen',
-      email: profile?.email || '',
-      points: basePoints + (isFirstReport ? POINTS.FIRST_REPORT : 0),
-      badges: [],
-      issuesReported: kind === 'report' ? 1 : 0,
-      issuesVerified: kind === 'verify' ? 1 : 0,
-      createdAt: serverTimestamp(),
-    });
-  } else {
-    await updateDoc(userRef, {
-      points: increment(basePoints),
-      [counterField]: increment(1),
-      // Backfill the display name/email once the citizen signs in.
-      ...(profile?.name ? { name: profile.name } : {}),
-      ...(profile?.email ? { email: profile.email } : {}),
-    });
-  }
-
-  // Re-read counters and award any newly-eligible badges.
-  const fresh = await getDoc(userRef);
-  const data = fresh.data() as
-    | { issuesReported?: number; issuesVerified?: number; badges?: { id: string }[] }
-    | undefined;
-  if (!data) return;
-
-  const earned = eligibleBadges({
-    issuesReported: data.issuesReported ?? 0,
-    issuesVerified: data.issuesVerified ?? 0,
-  });
-  const heldIds = new Set((data.badges ?? []).map((b) => b.id));
-  const newBadges = earned
-    .filter((b) => !heldIds.has(b.id))
-    .map((b) => ({ id: b.id, name: b.name, awardedAt: Timestamp.now() }));
-
-  if (newBadges.length > 0) {
-    await updateDoc(userRef, { badges: arrayUnion(...newBadges) });
   }
 }
