@@ -25,6 +25,7 @@ const NAV = [
   { href: '/agent', label: 'Agent' },
   { href: '/command', label: 'Command' },
   { href: '/admin', label: 'Depts' },
+  { href: '/whatsapp', label: 'WhatsApp' },
   { href: '/profile', label: 'Profile' },
 ];
 

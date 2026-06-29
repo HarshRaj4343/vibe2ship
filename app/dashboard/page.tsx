@@ -25,11 +25,13 @@ import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import StatsGrid from '@/components/StatsGrid';
 import ImpactBand from '@/components/ImpactBand';
+import PredictiveBand from '@/components/PredictiveBand';
 import ResolvedGallery from '@/components/ResolvedGallery';
 import LeaderboardTable from '@/components/LeaderboardTable';
 import IssueCard from '@/components/IssueCard';
 import EmptyState from '@/components/EmptyState';
 import { computeImpact } from '@/lib/impact';
+import { computePredictions } from '@/lib/predict';
 import type { SerializedIssue } from '@/lib/types';
 import { CATEGORY_LABELS, CATEGORY_COLORS } from '@/lib/types';
 import {
@@ -179,6 +181,7 @@ export default function DashboardPage() {
   }, [issues]);
 
   const impact = useMemo(() => computeImpact(issues), [issues]);
+  const predictions = useMemo(() => computePredictions(issues), [issues]);
 
   const recent = issues.slice(0, 10);
 
@@ -205,6 +208,8 @@ export default function DashboardPage() {
       <h1 className="font-serif text-3xl font-medium text-ink">Community Dashboard</h1>
 
       <ImpactBand impact={impact} />
+
+      <PredictiveBand predictions={predictions} />
 
       <StatsGrid stats={stats} />
 

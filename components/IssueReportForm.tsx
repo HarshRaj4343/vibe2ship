@@ -29,6 +29,10 @@ export default function IssueReportForm() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [description, setDescription] = useState('');
+  const [heard, setHeard] = useState<{
+    transcript: string;
+    language: string;
+  } | null>(null);
   const [coords, setCoords] = useState<Coords | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -236,6 +240,7 @@ export default function IssueReportForm() {
             onTranscript={(t) =>
               setDescription((d) => (d ? `${d} ${t}` : t))
             }
+            onDetected={(info) => setHeard(info)}
           />
         </div>
         <textarea
@@ -245,6 +250,12 @@ export default function IssueReportForm() {
           rows={3}
           className="w-full rounded-2xl border border-ink/15 bg-white/60 p-3 text-sm backdrop-blur focus:border-sarvam-blue focus:outline-none focus:ring-1 focus:ring-sarvam-blue"
         />
+        {heard && heard.language.toLowerCase() !== 'english' && heard.transcript && (
+          <p className="rounded-xl bg-sarvam-sky/20 px-3 py-2 text-xs text-ink/60">
+            🎙️ Heard ({heard.language}): &ldquo;{heard.transcript}&rdquo; —
+            transcribed to English above.
+          </p>
+        )}
       </div>
 
       {error && (

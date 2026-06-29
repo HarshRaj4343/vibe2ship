@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import LandingStats from '@/components/LandingStats';
 import Reveal from '@/components/Reveal';
-import { Search, Radar, Mail, Mic } from '@/components/icons';
+import { Search, Radar, Mail, Mic, RotateCw, BarChart3 } from '@/components/icons';
 
 const PIPELINE = [
   { n: '1', title: 'Validate', body: 'Is it a real civic issue?' },
@@ -13,26 +13,38 @@ const PIPELINE = [
 const FEATURES = [
   {
     Icon: Search,
-    title: 'AI Resolution Verification',
-    body: 'Upload an "after" photo and the agent compares it to the original to confirm the fix actually happened.',
+    title: 'Before/after AI verification',
+    body: 'Upload an "after" photo and the agent skeptically compares it to the original to confirm the fix actually happened — no rubber-stamping.',
     tag: 'Closes the loop',
+  },
+  {
+    Icon: RotateCw,
+    title: 'Geo-dedup fold-in',
+    body: 'Report a problem someone already flagged nearby and the agent folds it into the existing issue within 200m — one issue, many verifications, zero duplicate triage.',
+    tag: 'No double work',
   },
   {
     Icon: Radar,
     title: 'Municipal Command Center',
-    body: 'An agent reasons across every open issue to produce a prioritized daily action plan and detect hotspots.',
+    body: 'A live agent reasons across every open issue, streaming its plan as it goes, to produce a prioritized daily action list and detect hotspots.',
     tag: 'City-wide reasoning',
   },
   {
     Icon: Mail,
-    title: 'Auto-drafted complaints',
-    body: 'One tap turns a report into a formal complaint letter to the responsible department, with a tracking ID.',
-    tag: 'Takes action',
+    title: 'Auto-drafted complaint letters',
+    body: 'One tap turns a photo into a formal, department-addressed complaint letter with a tracking ID — the citizen never drafts a word.',
+    tag: 'Headline wow',
+  },
+  {
+    Icon: BarChart3,
+    title: 'Predictive outlook',
+    body: 'Forecasts when each open issue will be fixed, flags chronic repeat-offender areas, and spots emerging hotspots before they peak.',
+    tag: 'Sees ahead',
   },
   {
     Icon: Mic,
-    title: 'Voice reporting',
-    body: 'Describe the issue out loud — speech is transcribed and fed into the AI pipeline.',
+    title: 'Hindi voice reporting',
+    body: 'Speak the issue in Hindi or English — Gemini multimodal transcribes it to clean English and feeds it straight into the pipeline.',
     tag: 'Multimodal',
   },
 ];
@@ -68,7 +80,7 @@ const PARTNERS = [
   'Firestore',
   'Google Maps',
   'Cloud Run',
-  'Web Speech API',
+  'Gemini multimodal voice',
 ];
 
 export default function Home() {
@@ -115,6 +127,13 @@ export default function Home() {
               <Radar className="h-4 w-4" /> Command Center
             </Link>
           </div>
+          <Link
+            href="/whatsapp"
+            className="mt-4 inline-flex animate-fade-up items-center gap-1.5 text-sm font-medium text-emerald-700 transition hover:text-emerald-800"
+            style={{ animationDelay: '340ms' }}
+          >
+            <Mic className="h-4 w-4" /> Or report on WhatsApp — no app needed
+          </Link>
 
           <div
             className="mt-14 animate-fade-up"
