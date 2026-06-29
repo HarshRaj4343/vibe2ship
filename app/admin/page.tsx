@@ -13,6 +13,8 @@ import {
   overdueByDays,
   departmentSLA,
 } from '@/lib/sla';
+import { neighborhoodScores, cityCivicScore } from '@/lib/civic';
+import type { CivicGrade } from '@/lib/civic';
 import EmptyState from '@/components/EmptyState';
 import {
   Building,
@@ -20,7 +22,16 @@ import {
   Clock,
   CheckCircle,
   Target,
+  MapPin,
 } from '@/components/icons';
+
+const GRADE_STYLE: Record<CivicGrade, string> = {
+  A: 'bg-emerald-100 text-emerald-700',
+  B: 'bg-lime-100 text-lime-700',
+  C: 'bg-amber-100 text-amber-700',
+  D: 'bg-orange-100 text-orange-700',
+  F: 'bg-red-100 text-red-700',
+};
 
 function fmtDays(d: number): string {
   const v = Math.round(d * 10) / 10;
@@ -45,6 +56,8 @@ export default function AdminPage() {
   }, []);
 
   const deptRows = useMemo(() => departmentSLA(issues), [issues]);
+  const hoods = useMemo(() => neighborhoodScores(issues), [issues]);
+  const cityScore = useMemo(() => cityCivicScore(issues), [issues]);
 
   const overdue = useMemo(
     () =>
@@ -113,16 +126,35 @@ export default function AdminPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-8">
-      <div>
-        <p className="text-sm font-medium text-sarvam-orange">Accountability</p>
-        <h1 className="font-serif text-3xl font-medium text-ink">
-          Department SLA Board
-        </h1>
-        <p className="mt-1 max-w-2xl text-sm text-ink/55">
-          Every issue carries a resolution target based on its severity. This
-          board tracks which departments are keeping pace — and flags anything
-          past its SLA as overdue.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-sarvam-orange">Accountability</p>
+          <h1 className="font-serif text-3xl font-medium text-ink">
+            Department SLA Board
+          </h1>
+          <p className="mt-1 max-w-2xl text-sm text-ink/55">
+            Every issue carries a resolution target based on its severity. This
+            board tracks which departments are keeping pace — and flags anything
+            past its SLA as overdue.
+          </p>
+        </div>
+        {/* City-wide civic score — the public accountability headline. */}
+        <div className="glass-card flex items-center gap-3 px-4 py-3">
+          <span
+            className={`flex h-12 w-12 items-center justify-center rounded-2xl font-serif text-2xl font-medium ${GRADE_STYLE[cityScore.grade]}`}
+          >
+            {cityScore.grade}
+          </span>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-ink/45">
+              City civic score
+            </p>
+            <p className="font-serif text-2xl font-medium text-ink">
+              {cityScore.score}
+              <span className="text-base text-ink/40">/100</span>
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -227,6 +259,65 @@ export default function AdminPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+      </section>
+
+      {/* Neighborhood civic scores */}
+      <section>
+        <h2 className="mb-1 flex items-center gap-2 font-semibold text-ink">
+          <MapPin className="h-5 w-5 text-sarvam-blue" /> Neighborhood civic scores
+        </h2>
+        <p className="mb-4 max-w-2xl text-sm text-ink/55">
+          A 0–100 grade per locality — rewarding neighborhoods whose issues get
+          closed, closed on time, and don&apos;t pile up. Lowest scores lead, so
+          the areas that need attention surface first.
+        </p>
+        {hoods.length === 0 ? (
+          <EmptyState
+            icon={<MapPin className="h-6 w-6" />}
+            title="No neighborhoods to score yet"
+            hint="Once geolocated reports come in, each locality gets a civic score."
+          />
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {hoods.slice(0, 6).map((h) => (
+              <div key={h.area} className="glass-card p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="flex items-center gap-1 text-sm font-medium text-ink">
+                      <MapPin className="h-3.5 w-3.5 shrink-0 text-ink/40" />
+                      {h.area}
+                    </p>
+                    <p className="mt-0.5 text-xs text-ink/45">
+                      {h.total} report{h.total === 1 ? '' : 's'} · {h.resolvedPct}%
+                      resolved
+                    </p>
+                  </div>
+                  <span
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl font-serif text-xl font-medium ${GRADE_STYLE[h.grade]}`}
+                  >
+                    {h.grade}
+                  </span>
+                </div>
+                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-ink/10">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-sarvam-blue to-sarvam-orange"
+                    style={{ width: `${h.score}%` }}
+                  />
+                </div>
+                <div className="mt-2 flex items-center justify-between text-xs text-ink/55">
+                  <span>Score {h.score}/100</span>
+                  {h.overdue > 0 ? (
+                    <span className="font-medium text-red-600">
+                      {h.overdue} overdue
+                    </span>
+                  ) : (
+                    <span className="text-emerald-600">on track</span>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </section>

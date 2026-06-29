@@ -120,6 +120,18 @@ export interface ResolutionEstimate {
   sampleSize: number;
 }
 
+/**
+ * Result of transcribing a spoken civic-issue report with Gemini multimodal
+ * (audio in → text out). Supports Hindi (and other Indian languages): the model
+ * returns the original transcript plus an English rendering the analysis pipeline
+ * can consume.
+ */
+export interface VoiceTranscription {
+  transcript: string; // verbatim, in the language spoken
+  english: string; // English translation/normalization (== transcript if already English)
+  language: string; // detected language label, e.g. "Hindi"
+}
+
 export interface DispatchState {
   status: 'queued' | 'approved' | 'rejected' | 'dispatched';
   complaintRef?: string; // the complaint reference id

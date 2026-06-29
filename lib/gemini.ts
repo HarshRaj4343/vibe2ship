@@ -4,6 +4,7 @@ import type {
   ResolutionVerification,
   ComplaintDraft,
   CityBriefing,
+  VoiceTranscription,
 } from './types';
 
 const apiKey = process.env.GEMINI_API_KEY;
@@ -390,5 +391,48 @@ Limit topActions to the 5 most urgent.`;
     topActions: Array.isArray(p.topActions) ? p.topActions.slice(0, 5) : [],
     hotspots: Array.isArray(p.hotspots) ? p.hotspots : [],
     departmentLoad: Array.isArray(p.departmentLoad) ? p.departmentLoad : [],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// VOICE / MULTIMODAL — transcribe a spoken civic report (audio in → text out)
+// Uses Gemini's native audio understanding so a citizen can *speak* the issue
+// (in Hindi or English). Returns the verbatim transcript plus an English
+// rendering the rest of the pipeline (analyze / draftComplaint) can consume.
+// ---------------------------------------------------------------------------
+export async function transcribeVoiceReport(
+  audioBase64: string,
+  mimeType: string,
+): Promise<VoiceTranscription> {
+  const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+
+  const prompt = `
+You are the voice intake for a civic issue reporting app used in India. The
+attached audio is a citizen describing a community problem (pothole, water leak,
+broken streetlight, garbage, etc.), most likely in Hindi or English.
+
+Transcribe it, then return ONLY valid JSON — no markdown, no commentary:
+{
+  "transcript": "<verbatim transcription in the language actually spoken>",
+  "english": "<a clean English version of what they said; if already English, repeat the transcript>",
+  "language": "<the language spoken, e.g. Hindi, English, Hinglish>"
+}
+
+Keep "english" concise and report-like (what the issue is and where), suitable
+for filing. If the audio is empty or unintelligible, return empty strings and
+language "unknown".`;
+
+  const result = await model.generateContent([
+    { text: prompt },
+    { inlineData: { mimeType, data: audioBase64 } },
+  ]);
+
+  const p = parseJson<VoiceTranscription>(result.response.text());
+  const transcript = (p.transcript || '').trim();
+  const english = (p.english || transcript).trim();
+  return {
+    transcript,
+    english,
+    language: (p.language || 'unknown').trim(),
   };
 }
