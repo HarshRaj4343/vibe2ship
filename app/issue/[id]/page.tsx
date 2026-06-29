@@ -9,11 +9,12 @@ import SeverityBar from '@/components/SeverityBar';
 import PointsToast from '@/components/PointsToast';
 import ResolutionVerifier from '@/components/ResolutionVerifier';
 import ComplaintDrafter from '@/components/ComplaintDrafter';
+import AgentTrace from '@/components/AgentTrace';
 import { useAuth } from '@/lib/auth';
 import type { IssueStatus, ResolutionVerification, SerializedIssue } from '@/lib/types';
 import { STATUS_LABELS } from '@/lib/types';
 import EmptyState from '@/components/EmptyState';
-import { HelpCircle, AlertTriangle, Check, Bot, ArrowUp } from '@/components/icons';
+import { HelpCircle, AlertTriangle, Check, Bot, ArrowUp, Clock } from '@/components/icons';
 
 const STATUS_ORDER: IssueStatus[] = ['open', 'in_progress', 'resolved'];
 
@@ -131,6 +132,12 @@ export default function IssueDetailPage() {
             <AlertTriangle className="h-3.5 w-3.5" /> Safety risk
           </span>
         )}
+        {issue.dispatch && <DispatchBadge status={issue.dispatch.status} />}
+        {issue.resolutionEstimate && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-sarvam-sky/40 px-2.5 py-0.5 text-xs font-medium text-sarvam-blue">
+            <Clock className="h-3.5 w-3.5" /> Est. ~{issue.resolutionEstimate.etaDays}d to fix
+          </span>
+        )}
       </div>
 
       <h1 className="mt-3 font-serif text-3xl font-medium text-ink">{issue.title}</h1>
@@ -166,7 +173,7 @@ export default function IssueDetailPage() {
           <span>{showReasoning ? '−' : '+'}</span>
         </button>
         {showReasoning && (
-          <div className="space-y-2 border-t border-white/50 p-4 text-sm text-ink/65">
+          <div className="space-y-3 border-t border-white/50 p-4 text-sm text-ink/65">
             <p>{issue.aiAnalysis?.reasoning}</p>
             <p>
               <span className="font-medium text-ink">Confidence:</span>{' '}
@@ -176,6 +183,23 @@ export default function IssueDetailPage() {
               <span className="font-medium text-ink">Routed to:</span>{' '}
               {issue.assignedDept}
             </p>
+            {issue.resolutionEstimate && (
+              <p>
+                <span className="font-medium text-ink">Est. resolution:</span>{' '}
+                ~{issue.resolutionEstimate.etaDays} day(s){' '}
+                <span className="text-ink/40">
+                  ({issue.resolutionEstimate.basis})
+                </span>
+              </p>
+            )}
+            {issue.agentTrace && issue.agentTrace.length > 0 && (
+              <div className="border-t border-white/50 pt-3">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-sarvam-blue">
+                  Autonomous agent trace
+                </p>
+                <AgentTrace steps={issue.agentTrace} />
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -252,5 +276,22 @@ export default function IssueDetailPage() {
         />
       )}
     </div>
+  );
+}
+
+function DispatchBadge({ status }: { status: string }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    queued: { label: 'Dispatch: awaiting approval', cls: 'bg-amber-100 text-amber-700' },
+    approved: { label: 'Dispatch: approved', cls: 'bg-emerald-100 text-emerald-700' },
+    dispatched: { label: 'Dispatched to dept', cls: 'bg-emerald-100 text-emerald-700' },
+    rejected: { label: 'Dispatch: rejected', cls: 'bg-ink/10 text-ink/60' },
+  };
+  const m = map[status] ?? map.queued;
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${m.cls}`}
+    >
+      {m.label}
+    </span>
   );
 }

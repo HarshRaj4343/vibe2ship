@@ -159,6 +159,80 @@ function parseJson<T>(text: string): T {
 }
 
 // ---------------------------------------------------------------------------
+// SELF-CORRECTION — critique a low-confidence categorization
+// Re-examines the photo and skeptically challenges the agent's own category /
+// severity, returning a possibly-revised verdict. Used by the intake agent's
+// critique_analysis tool when its confidence is low.
+// ---------------------------------------------------------------------------
+export interface AnalysisCritique {
+  category: IssueAnalysis['category'];
+  severity: number;
+  safetyRisk: boolean;
+  confidence: number;
+  reasoning: string;
+  changed: boolean; // did the critique revise the original verdict?
+}
+
+export async function critiqueAnalysis(
+  imageBase64: string,
+  mimeType: string,
+  current: {
+    category: string;
+    severity: number;
+    safetyRisk: boolean;
+    reasoning?: string;
+  },
+): Promise<AnalysisCritique> {
+  const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+
+  const prompt = `
+You are a skeptical reviewer auditing another AI's analysis of a civic-issue photo.
+The first-pass analysis was:
+- category: ${current.category}
+- severity (1-5): ${current.severity}
+- safetyRisk: ${current.safetyRisk}
+- reasoning: ${current.reasoning ?? 'n/a'}
+
+Re-examine the photo independently. Challenge the categorization and severity.
+Could it be a different category? Is the severity over- or under-stated? Decide
+the most defensible verdict.
+
+Categories: pothole, water_leak, streetlight, waste, other.
+
+Return ONLY valid JSON, no markdown:
+{
+  "category": "pothole",
+  "severity": 4,
+  "safetyRisk": true,
+  "confidence": 0.9,
+  "reasoning": "what you concluded and why it differs from or confirms the first pass",
+  "changed": false
+}`;
+
+  const result = await model.generateContent([
+    prompt,
+    { inlineData: { mimeType, data: imageBase64 } },
+  ]);
+
+  const validCategories: IssueAnalysis['category'][] = [
+    'pothole',
+    'water_leak',
+    'streetlight',
+    'waste',
+    'other',
+  ];
+  const p = parseJson<AnalysisCritique>(result.response.text());
+  return {
+    category: validCategories.includes(p.category) ? p.category : 'other',
+    severity: clamp(Math.round(Number(p.severity) || current.severity), 1, 5),
+    safetyRisk: Boolean(p.safetyRisk),
+    confidence: clamp(Number(p.confidence) || 0, 0, 1),
+    reasoning: p.reasoning || '',
+    changed: Boolean(p.changed),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // AGENT 2 — Resolution Verification
 // Compares the original "before" photo with a citizen-uploaded "after" photo
 // and autonomously decides whether the civic issue has actually been fixed.

@@ -21,14 +21,26 @@ import {
   CartesianGrid,
 } from 'recharts';
 import type { TooltipProps } from 'recharts';
+import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import StatsGrid from '@/components/StatsGrid';
+import ImpactBand from '@/components/ImpactBand';
+import ResolvedGallery from '@/components/ResolvedGallery';
 import LeaderboardTable from '@/components/LeaderboardTable';
 import IssueCard from '@/components/IssueCard';
 import EmptyState from '@/components/EmptyState';
+import { computeImpact } from '@/lib/impact';
 import type { SerializedIssue } from '@/lib/types';
 import { CATEGORY_LABELS, CATEGORY_COLORS } from '@/lib/types';
-import { ClipboardList, CheckCircle, Users, Clock, Trophy } from '@/components/icons';
+import {
+  ClipboardList,
+  CheckCircle,
+  Users,
+  Clock,
+  Trophy,
+  AlertTriangle,
+  ArrowRight,
+} from '@/components/icons';
 
 interface LeaderUser {
   id: string;
@@ -166,6 +178,8 @@ export default function DashboardPage() {
     return days;
   }, [issues]);
 
+  const impact = useMemo(() => computeImpact(issues), [issues]);
+
   const recent = issues.slice(0, 10);
 
   if (loading) {
@@ -190,7 +204,27 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-8">
       <h1 className="font-serif text-3xl font-medium text-ink">Community Dashboard</h1>
 
+      <ImpactBand impact={impact} />
+
       <StatsGrid stats={stats} />
+
+      <Link
+        href="/admin"
+        className="glass-card glass-card-hover flex items-center justify-between gap-3 p-4"
+      >
+        <span className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 text-red-600">
+            <AlertTriangle className="h-5 w-5" />
+          </span>
+          <span>
+            <span className="block font-medium text-ink">Department SLA board</span>
+            <span className="block text-sm text-ink/55">
+              See which departments are overdue and who&apos;s keeping pace.
+            </span>
+          </span>
+        </span>
+        <ArrowRight className="h-5 w-5 shrink-0 text-ink/40" />
+      </Link>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="glass-card p-5">
@@ -235,6 +269,8 @@ export default function DashboardPage() {
           </ResponsiveContainer>
         </div>
       </div>
+
+      <ResolvedGallery issues={issues} />
 
       <div>
         <h2 className="mb-4 flex items-center gap-2 font-semibold text-ink">

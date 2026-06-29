@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Map, BarChart3, Plus, Radar, UserCircle } from '@/components/icons';
+import { Map, BarChart3, Plus, Radar, UserCircle, Bot } from '@/components/icons';
 
 const ITEMS = [
   { href: '/map', label: 'Map', Icon: Map },
-  { href: '/dashboard', label: 'Stats', Icon: BarChart3 },
+  { href: '/agent', label: 'Agent', Icon: Bot },
   { href: '/report', label: 'Report', Icon: Plus, primary: true },
   { href: '/command', label: 'Command', Icon: Radar },
   { href: '/profile', label: 'Profile', Icon: UserCircle },
