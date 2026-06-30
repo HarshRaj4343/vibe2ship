@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
 import {
@@ -103,7 +103,14 @@ export default function StatusNotifier() {
     setPermState(
       notificationsAvailable() ? Notification.permission : 'unsupported',
     );
-    if (token) console.info('[fcm] push token registered');
+    // Persist the FCM device token server-side so API routes can send pushes.
+    if (token && identity.uid && identity.uid !== 'anonymous') {
+      try {
+        await updateDoc(doc(db, 'users', identity.uid), { fcmToken: token });
+      } catch {
+        // User doc may not exist yet; it's created on first report — skip.
+      }
+    }
   }
 
   useEffect(() => {

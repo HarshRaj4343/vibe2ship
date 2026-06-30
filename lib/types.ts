@@ -157,6 +157,7 @@ export interface Issue {
   assignedDept: string; // auto-assigned by AI
   aiAnalysis: StoredAiAnalysis;
   resolution?: ResolutionVerification; // set when AI-verified as fixed
+  communityUpdate?: string; // AI-drafted public announcement on resolution
   complaint?: ComplaintDraft; // set when a complaint letter is drafted
   agentTrace?: AgentStep[]; // set when created via the autonomous agent (/agent)
   dispatch?: DispatchState; // human-approval checkpoint for complaint dispatch

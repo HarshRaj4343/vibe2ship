@@ -135,9 +135,12 @@ export async function POST(req: NextRequest) {
       aiAnalysis: aiAnalysis ?? {},
     });
 
-    await awardPoints(reportedBy, POINTS.REPORT_ISSUE, 'report', profile);
+    const award = await awardPoints(reportedBy, POINTS.REPORT_ISSUE, 'report', profile);
 
-    return NextResponse.json({ id, deduplicated: false }, { status: 201 });
+    return NextResponse.json(
+      { id, deduplicated: false, pointsAwarded: award.points, streakBonus: award.streakBonus },
+      { status: 201 },
+    );
   } catch (err) {
     console.error('Failed to create issue:', err);
     return NextResponse.json({ error: 'Failed to create issue' }, { status: 500 });

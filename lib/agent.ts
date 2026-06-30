@@ -7,7 +7,13 @@ import {
   type AgentSession,
 } from '@/lib/agent-tools';
 import { makeStep } from '@/lib/agent-step';
-import type { AgentStep, DispatchState } from '@/lib/types';
+import {
+  readAgentMemories,
+  writeAgentMemory,
+  formatMemoriesForPrompt,
+  buildInsight,
+} from '@/lib/agent-memory';
+import type { AgentStep, DispatchState, IssueCategory } from '@/lib/types';
 
 const apiKey = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey ?? '');
@@ -15,7 +21,7 @@ const MODEL_NAME = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
 const MAX_TURNS = 10;
 
-const SYSTEM_INSTRUCTION = `You are the autonomous intake agent for UrbanPulse, a civic issue reporting system.
+const BASE_SYSTEM_INSTRUCTION = `You are the autonomous intake agent for UrbanPulse, a civic issue reporting system.
 A citizen has uploaded a photo (and maybe a description) of a potential community problem.
 
 You operate by CALLING TOOLS yourself — you decide what to do, in what order. Do not just describe steps; invoke the tools.
@@ -128,10 +134,19 @@ export async function runIntakeAgent(
     description: input.description,
   };
 
+  // Hydrate the system prompt with cross-session agent memories.
+  const memories = await readAgentMemories();
+  const systemInstruction = BASE_SYSTEM_INSTRUCTION + formatMemoriesForPrompt(memories);
+  if (memories.length > 0) {
+    emit(makeStep('thought', `Recalled ${memories.length} past insight(s) from memory`, {
+      detail: memories.map((m) => m.insight).join(' | '),
+    }));
+  }
+
   const model = genAI.getGenerativeModel({
     model: MODEL_NAME,
     tools: [{ functionDeclarations: agentToolDeclarations }],
-    systemInstruction: SYSTEM_INSTRUCTION,
+    systemInstruction,
   });
   const chat = model.startChat();
 
@@ -248,6 +263,25 @@ export async function runIntakeAgent(
       agentTrace: safeTrace,
       updatedAt: serverTimestamp(),
     }).catch((e) => console.error('Failed to persist agent trace:', e));
+
+    // Write a memory insight so future agent sessions can learn from this run.
+    if (session.category && session.assignedDept) {
+      const area = `${Math.round(input.lat * 100) / 100},${Math.round(input.lng * 100) / 100}`;
+      await writeAgentMemory({
+        category: session.category as IssueCategory,
+        dept: session.assignedDept,
+        area,
+        insight: buildInsight(
+          session.category as IssueCategory,
+          session.assignedDept,
+          area,
+          session.resolutionEstimate?.etaDays ?? null,
+          Boolean(session.severity && session.severity >= 4),
+        ),
+        issueId: session.issueId,
+        createdAt: Date.now(),
+      });
+    }
   }
 
   return {

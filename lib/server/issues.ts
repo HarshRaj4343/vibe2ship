@@ -3,6 +3,9 @@ import {
   addDoc,
   doc,
   getDoc,
+  getDocs,
+  query,
+  where,
   setDoc,
   updateDoc,
   increment,
@@ -72,6 +75,7 @@ export interface AwardedBadge {
 
 export interface AwardResult {
   points: number;
+  streakBonus: number;
   newBadges: AwardedBadge[];
 }
 
@@ -91,12 +95,31 @@ export async function awardPoints(
 
   const counterField = kind === 'report' ? 'issuesReported' : 'issuesVerified';
 
+  // Check for weekly streak: 3+ reports in the last 7 days earns a bonus.
+  let streakBonus = 0;
+  if (kind === 'report') {
+    const weekAgo = Timestamp.fromMillis(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    try {
+      const weeklySnap = await getDocs(
+        query(
+          collection(db, 'issues'),
+          where('reportedBy', '==', userId),
+          where('createdAt', '>=', weekAgo),
+        ),
+      );
+      if (weeklySnap.size >= 3) streakBonus = POINTS.STREAK_BONUS;
+    } catch {
+      // Index may not exist yet in dev — skip bonus gracefully.
+    }
+  }
+  const totalPoints = basePoints + streakBonus;
+
   if (!userSnap.exists()) {
     const isFirstReport = kind === 'report';
     await setDoc(userRef, {
       name: profile?.name || 'Anonymous Citizen',
       email: profile?.email || '',
-      points: basePoints + (isFirstReport ? POINTS.FIRST_REPORT : 0),
+      points: totalPoints + (isFirstReport ? POINTS.FIRST_REPORT : 0),
       badges: [],
       issuesReported: kind === 'report' ? 1 : 0,
       issuesVerified: kind === 'verify' ? 1 : 0,
@@ -104,7 +127,7 @@ export async function awardPoints(
     });
   } else {
     await updateDoc(userRef, {
-      points: increment(basePoints),
+      points: increment(totalPoints),
       [counterField]: increment(1),
       // Backfill the display name/email once the citizen signs in.
       ...(profile?.name ? { name: profile.name } : {}),
@@ -117,7 +140,7 @@ export async function awardPoints(
   const data = fresh.data() as
     | { issuesReported?: number; issuesVerified?: number; badges?: { id: string }[] }
     | undefined;
-  if (!data) return { points: basePoints, newBadges: [] };
+  if (!data) return { points: totalPoints, streakBonus, newBadges: [] };
 
   const earned = eligibleBadges({
     issuesReported: data.issuesReported ?? 0,
@@ -133,7 +156,8 @@ export async function awardPoints(
   }
 
   return {
-    points: basePoints,
+    points: totalPoints,
+    streakBonus,
     newBadges: newBadges.map((b) => ({ id: b.id, name: b.name })),
   };
 }

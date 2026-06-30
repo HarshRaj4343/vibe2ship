@@ -16,7 +16,7 @@ import AgentTrace from '@/components/AgentTrace';
 import { useAuth } from '@/lib/auth';
 import type { IssueStatus, ResolutionVerification, SerializedIssue } from '@/lib/types';
 import EmptyState from '@/components/EmptyState';
-import { HelpCircle, AlertTriangle, Check, Bot, ArrowUp, Clock } from '@/components/icons';
+import { HelpCircle, AlertTriangle, Check, Bot, ArrowUp, Clock, CheckCircle } from '@/components/icons';
 
 export default function IssueDetailPage() {
   const params = useParams<{ id: string }>();
@@ -213,6 +213,21 @@ export default function IssueDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Community resolution announcement */}
+      {issue.communityUpdate && issue.status === 'resolved' && (
+        <div className="glass-card mt-6 flex items-start gap-3 p-4">
+          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+            <CheckCircle className="h-4 w-4" />
+          </span>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">
+              Community Update
+            </p>
+            <p className="mt-1 text-sm text-ink/80">{issue.communityUpdate}</p>
+          </div>
+        </div>
+      )}
 
       {/* Agentic actions */}
       <div className="mt-6 grid gap-4 md:grid-cols-2">

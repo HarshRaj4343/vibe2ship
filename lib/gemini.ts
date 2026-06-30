@@ -465,6 +465,52 @@ Limit topActions to the 5 most urgent.`;
 }
 
 // ---------------------------------------------------------------------------
+// COMMUNITY UPDATE — draft a public announcement when an issue is resolved
+// Shows the full citizen-to-resolution communication loop: report → triage →
+// fix → public celebration. Stored on the issue doc, shown on the issue page.
+// ---------------------------------------------------------------------------
+export async function draftCommunityUpdate(issue: {
+  title: string;
+  category: string;
+  area?: string;
+  verifiedCount: number;
+  createdAt: number; // epoch millis
+  assignedDept: string;
+}): Promise<string> {
+  const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+  const daysOpen = Math.max(
+    1,
+    Math.round((Date.now() - issue.createdAt) / 86_400_000),
+  );
+  const reporters = issue.verifiedCount > 0 ? issue.verifiedCount + 1 : 1;
+
+  const prompt = `
+You are writing a short community celebration post for a civic issue reporting app.
+The issue has just been confirmed resolved by AI vision verification.
+
+Issue details:
+- Title: ${issue.title}
+- Category: ${issue.category}
+- Days open: ${daysOpen}
+- Citizens who reported it: ${reporters}
+- Department that fixed it: ${issue.assignedDept}
+${issue.area ? `- Area: ${issue.area}` : ''}
+
+Write a warm, encouraging 1-2 sentence community update in English. Celebrate the
+fix, credit the citizens who reported it, and mention how long it took. Keep it
+positive, civic, and under 60 words.
+
+Return ONLY the text — no JSON, no markdown, no quotes.`;
+
+  try {
+    const result = await generateWithRetry(model, prompt);
+    return result.response.text().trim();
+  } catch {
+    return `Great news! "${issue.title}" has been resolved after ${daysOpen} day(s), thanks to ${reporters} citizen report(s). The community made it happen!`;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // VOICE / MULTIMODAL — transcribe a spoken civic report (audio in → text out)
 // Uses Gemini's native audio understanding so a citizen can *speak* the issue
 // (in Hindi or English). Returns the verbatim transcript plus an English

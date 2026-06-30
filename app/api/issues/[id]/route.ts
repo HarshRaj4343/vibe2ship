@@ -9,6 +9,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { POINTS } from '@/lib/points';
+import { sendPush } from '@/lib/server/fcm';
 import type { IssueStatus } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -62,16 +63,33 @@ export async function PATCH(
       return NextResponse.json({ error: 'Issue not found' }, { status: 404 });
     }
 
-    const issue = issueSnap.data() as { status: IssueStatus; reportedBy: string };
+    const issue = issueSnap.data() as {
+      status: IssueStatus;
+      reportedBy: string;
+      title: string;
+      communityUpdate?: string;
+    };
     const wasResolved = issue.status === 'resolved';
 
     await updateDoc(issueRef, { status, updatedAt: serverTimestamp() });
 
-    // Award the resolution bonus only on the transition into "resolved".
+    // On transition into "resolved": award bonus + send FCM push to reporter.
     if (status === 'resolved' && !wasResolved && issue.reportedBy) {
       await updateDoc(doc(db, 'users', issue.reportedBy), {
         points: increment(POINTS.ISSUE_RESOLVED),
       }).catch((e) => console.error('Resolution bonus failed:', e));
+
+      // Send push notification if the reporter stored an FCM token.
+      const userSnap = await getDoc(doc(db, 'users', issue.reportedBy)).catch(() => null);
+      const fcmToken = (userSnap?.data() as { fcmToken?: string } | undefined)?.fcmToken;
+      if (fcmToken) {
+        await sendPush(
+          fcmToken,
+          'Issue Resolved! 🎉',
+          `"${issue.title}" has been marked as resolved. +${POINTS.ISSUE_RESOLVED} points awarded.`,
+          { url: `/issue/${params.id}` },
+        );
+      }
     }
 
     return NextResponse.json({ ok: true, status });

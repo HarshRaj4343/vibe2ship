@@ -149,12 +149,21 @@ export default function IssueReportForm() {
         throw new Error(body.error ?? 'Could not submit issue');
       }
 
-      const data = (await res.json()) as { id: string; deduplicated: boolean };
+      const data = (await res.json()) as {
+        id: string;
+        deduplicated: boolean;
+        pointsAwarded?: number;
+        streakBonus?: number;
+      };
+      const earned = data.pointsAwarded ?? (data.deduplicated ? 5 : 10);
+      const streakMsg = data.streakBonus && data.streakBonus > 0
+        ? ` +${data.streakBonus} streak bonus!`
+        : '';
       setToast({
-        points: data.deduplicated ? 5 : 10,
+        points: earned,
         msg: data.deduplicated
           ? 'Existing nearby report verified!'
-          : 'Issue reported!',
+          : `Issue reported!${streakMsg}`,
       });
       setTimeout(() => router.push(`/issue/${data.id}`), 1200);
     } catch (e) {

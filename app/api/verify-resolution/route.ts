@@ -7,7 +7,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { verifyResolution } from '@/lib/gemini';
+import { verifyResolution, draftCommunityUpdate } from '@/lib/gemini';
 import { geminiErrorResponse } from '@/lib/api';
 import { POINTS } from '@/lib/points';
 import type { ResolutionVerification } from '@/lib/types';
@@ -48,6 +48,9 @@ export async function POST(req: NextRequest) {
       imageUrl: string;
       reportedBy: string;
       status: string;
+      verifiedCount?: number;
+      createdAt?: { toMillis: () => number };
+      assignedDept?: string;
     };
 
     if (!issue.imageUrl) {
@@ -77,6 +80,16 @@ export async function POST(req: NextRequest) {
     // Only flip to resolved (and pay the bonus) if the agent confirms the fix.
     if (result.isResolved && issue.status !== 'resolved') {
       updates.status = 'resolved';
+
+      // Draft a public community update celebrating the resolution.
+      const communityUpdate = await draftCommunityUpdate({
+        title: issue.title,
+        category: issue.category,
+        verifiedCount: issue.verifiedCount ?? 0,
+        createdAt: issue.createdAt?.toMillis?.() ?? Date.now(),
+        assignedDept: issue.assignedDept ?? 'Municipal Corporation',
+      }).catch(() => null);
+      if (communityUpdate) updates.communityUpdate = communityUpdate;
     }
     await updateDoc(issueRef, updates);
 

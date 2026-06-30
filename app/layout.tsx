@@ -29,6 +29,7 @@ const NAV = [
   { href: '/agent', label: 'Agent' },
   { href: '/command', label: 'Command' },
   { href: '/admin', label: 'Depts' },
+  { href: '/bulk-triage', label: 'Bulk Triage' },
   { href: '/whatsapp', label: 'WhatsApp' },
   { href: '/profile', label: 'Profile' },
 ];
