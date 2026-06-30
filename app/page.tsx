@@ -106,7 +106,7 @@ export default function Home() {
               <T>Broken streets.</T>
             </span>
             <span className="block text-5xl text-sarvam-blue sm:text-7xl">
-              <T>One photo at a time.</T>
+              <T>Resolved, not ignored.</T>
             </span>
           </h1>
           <p
