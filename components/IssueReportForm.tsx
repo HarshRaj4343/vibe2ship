@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { compressImageToDataUrl } from '@/lib/image';
+import { mediaToImageDataUrl } from '@/lib/image';
 import { useAuth } from '@/lib/auth';
 import VoiceInput from './VoiceInput';
 import type { IssueAnalysis, IssueCategory, Severity } from '@/lib/types';
@@ -64,8 +64,8 @@ export default function IssueReportForm() {
   }, [preview]);
 
   function handleFile(f: File) {
-    if (!f.type.startsWith('image/')) {
-      setError('Please choose an image file.');
+    if (!f.type.startsWith('image/') && !f.type.startsWith('video/')) {
+      setError('Please choose an image or video file.');
       return;
     }
     setError(null);
@@ -115,7 +115,7 @@ export default function IssueReportForm() {
       // Compress the photo client-side and store it inline as a data URL.
       // (Firebase Storage now requires the paid Blaze plan, so we keep the
       // image on the Firestore document instead.)
-      const imageUrl = await compressImageToDataUrl(file);
+      const imageUrl = await mediaToImageDataUrl(file);
 
       const res = await fetch('/api/issues', {
         method: 'POST',
@@ -190,29 +190,36 @@ export default function IssueReportForm() {
         } ${preview ? 'cursor-pointer' : ''}`}
       >
         {preview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={preview}
-            alt="Issue preview"
-            className="max-h-64 w-full rounded-lg object-contain"
-          />
+          file?.type.startsWith('video/') ? (
+            <video
+              src={preview}
+              controls
+              className="max-h-64 w-full rounded-lg object-contain"
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={preview}
+              alt="Issue preview"
+              className="max-h-64 w-full rounded-lg object-contain"
+            />
+          )
         ) : (
           <div className="py-6 text-center">
             <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-sarvam-sky/25 text-sarvam-blue">
               <Camera className="h-7 w-7" />
             </span>
-            <p className="mt-3 font-medium text-ink/80">Take a photo of the issue</p>
+            <p className="mt-3 font-medium text-ink/80">Photo or video of the issue</p>
             <p className="mt-0.5 text-sm text-ink/45">
               Point your camera at the pothole, leak, light or waste
             </p>
-            {/* Camera-first: the big button opens the camera; gallery is secondary. */}
             <div className="mt-4 flex items-center justify-center gap-2">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="btn-primary inline-flex min-h-[44px] items-center gap-2 px-5 py-3 text-sm"
               >
-                <Camera className="h-4 w-4" /> Take a photo
+                <Camera className="h-4 w-4" /> Take photo / video
               </button>
               <button
                 type="button"
@@ -228,7 +235,7 @@ export default function IssueReportForm() {
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,video/*"
           capture="environment"
           className="hidden"
           onChange={(e) => {
@@ -240,7 +247,7 @@ export default function IssueReportForm() {
         <input
           ref={galleryInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,video/*"
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];

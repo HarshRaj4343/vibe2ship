@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   APIProvider,
   Map,
   AdvancedMarker,
   useMap,
-  useMapsLibrary,
 } from '@vis.gl/react-google-maps';
 import type { SerializedIssue } from '@/lib/types';
 import { CATEGORY_COLORS } from '@/lib/types';
@@ -15,59 +14,89 @@ import CategoryIcon from '@/components/CategoryIcon';
 const DEFAULT_CENTER = { lat: 28.6139, lng: 77.209 }; // New Delhi fallback
 
 /**
- * Real Google Maps Platform heat layer. We pull the `visualization` library on
- * demand (`useMapsLibrary`) and drive a native `google.maps.visualization.
- * HeatmapLayer`, weighting each point by issue severity so genuine hotspots
- * (clusters of high-severity reports) burn brightest. The layer attaches to the
- * live map instance via `useMap()` and is torn down on unmount/toggle-off.
+ * Custom canvas heatmap rendered via google.maps.OverlayView.
+ * google.maps.visualization.HeatmapLayer was removed in Maps JS API v3.65, so
+ * we draw radial gradients directly onto a canvas overlay instead. Each issue
+ * contributes a circle whose radius and colour encode its severity:
+ *   1–2 → sky blue   3 → blue   4 → orange   5 → red
+ * The overlay's draw() method is called automatically on every zoom/pan.
  */
-// The bundled @types/google.maps ships only a partial HeatmapLayer type (no
-// options constructor, no setData). Model the runtime surface we actually use.
-interface RuntimeHeatmapLayer {
-  setData(data: Array<{ location: google.maps.LatLng; weight: number }>): void;
-  setMap(map: google.maps.Map | null): void;
-}
-
 function HeatmapLayer({ issues }: { issues: SerializedIssue[] }) {
   const map = useMap();
-  const visualization = useMapsLibrary('visualization');
-  const layerRef = useRef<RuntimeHeatmapLayer | null>(null);
 
   useEffect(() => {
-    if (!map || !visualization) return;
+    if (!map || !issues.length) return;
 
-    // The runtime accepts the HeatmapLayerOptions object even though the
-    // bundled type doesn't declare it — construct through a precise cast.
-    const HeatmapLayerCtor = visualization.HeatmapLayer as unknown as new (
-      opts: Record<string, unknown>,
-    ) => RuntimeHeatmapLayer;
+    const canvas = document.createElement('canvas');
+    Object.assign(canvas.style, {
+      position: 'absolute',
+      pointerEvents: 'none',
+    });
 
-    const layer =
-      layerRef.current ??
-      new HeatmapLayerCtor({
-        radius: 38,
-        opacity: 0.75,
-        // Sarvam-on-brand ramp: transparent → sky → blue → orange → red.
-        gradient: [
-          'rgba(56, 189, 248, 0)',
-          'rgba(56, 189, 248, 0.5)',
-          'rgba(59, 130, 246, 0.7)',
-          'rgba(249, 115, 22, 0.85)',
-          'rgba(239, 68, 68, 1)',
-        ],
-      });
-    layerRef.current = layer;
+    const mapRef = map;
+    class CanvasHeatmap extends google.maps.OverlayView {
+      onAdd() {
+        this.getPanes()!.overlayLayer.appendChild(canvas);
+      }
 
-    layer.setData(
-      issues.map((i) => ({
-        location: new google.maps.LatLng(i.lat, i.lng),
-        weight: i.severity, // 1–5 → hotter where severe issues cluster
-      })),
-    );
-    layer.setMap(map);
+      draw() {
+        const proj = this.getProjection();
+        const bounds = mapRef.getBounds();
+        if (!proj || !bounds) return;
 
-    return () => layer.setMap(null);
-  }, [map, visualization, issues]);
+        const ne = proj.fromLatLngToDivPixel(bounds.getNorthEast())!;
+        const sw = proj.fromLatLngToDivPixel(bounds.getSouthWest())!;
+        const left = Math.min(sw.x, ne.x);
+        const top = Math.min(ne.y, sw.y);
+        const w = Math.abs(ne.x - sw.x);
+        const h = Math.abs(sw.y - ne.y);
+
+        canvas.width = w;
+        canvas.height = h;
+        canvas.style.left = `${left}px`;
+        canvas.style.top = `${top}px`;
+
+        const ctx = canvas.getContext('2d')!;
+        ctx.clearRect(0, 0, w, h);
+
+        for (const issue of issues) {
+          const pt = proj.fromLatLngToDivPixel(
+            new google.maps.LatLng(issue.lat, issue.lng),
+          )!;
+          const x = pt.x - left;
+          const y = pt.y - top;
+          const r = 36 + issue.severity * 10;
+
+          // Sarvam-on-brand ramp: sky → blue → orange → red
+          const [r1, g1, b1] =
+            issue.severity <= 2
+              ? [56, 189, 248]
+              : issue.severity === 3
+                ? [59, 130, 246]
+                : issue.severity === 4
+                  ? [249, 115, 22]
+                  : [239, 68, 68];
+
+          const alpha = 0.22 + issue.severity * 0.09;
+          const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+          grad.addColorStop(0, `rgba(${r1},${g1},${b1},${alpha})`);
+          grad.addColorStop(1, `rgba(${r1},${g1},${b1},0)`);
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      onRemove() {
+        canvas.parentNode?.removeChild(canvas);
+      }
+    }
+
+    const overlay = new CanvasHeatmap();
+    overlay.setMap(map);
+    return () => overlay.setMap(null);
+  }, [map, issues]);
 
   return null;
 }

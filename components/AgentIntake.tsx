@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { compressImageToDataUrl } from '@/lib/image';
+import { mediaToImageDataUrl } from '@/lib/image';
 import { useAuth } from '@/lib/auth';
 import VoiceInput from './VoiceInput';
 import AgentTrace from './AgentTrace';
@@ -63,8 +63,8 @@ export default function AgentIntake() {
   }, [preview]);
 
   function handleFile(f: File) {
-    if (!f.type.startsWith('image/')) {
-      setError('Please choose an image file.');
+    if (!f.type.startsWith('image/') && !f.type.startsWith('video/')) {
+      setError('Please choose an image or video file.');
       return;
     }
     setError(null);
@@ -90,7 +90,7 @@ export default function AgentIntake() {
     setResult(null);
 
     try {
-      const imageUrl = await compressImageToDataUrl(file);
+      const imageUrl = await mediaToImageDataUrl(file);
       const res = await fetch('/api/agent/intake', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -193,17 +193,25 @@ export default function AgentIntake() {
         } ${running ? 'pointer-events-none opacity-80' : ''}`}
       >
         {preview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={preview}
-            alt="Issue preview"
-            className="max-h-64 w-full rounded-lg object-contain"
-          />
+          file?.type.startsWith('video/') ? (
+            <video
+              src={preview}
+              controls
+              className="max-h-64 w-full rounded-lg object-contain"
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={preview}
+              alt="Issue preview"
+              className="max-h-64 w-full rounded-lg object-contain"
+            />
+          )
         ) : (
           <div className="py-8 text-center">
             <Camera className="mx-auto h-8 w-8 text-ink/40" />
             <p className="mt-2 font-medium text-ink/70">
-              Drag &amp; drop a photo, or tap to choose
+              Drag &amp; drop a photo or video, or tap to choose
             </p>
             <p className="text-sm text-ink/40">The agent will take it from here</p>
           </div>
@@ -211,7 +219,7 @@ export default function AgentIntake() {
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,video/*"
           capture="environment"
           className="hidden"
           onChange={(e) => {

@@ -12,6 +12,73 @@
  * Note: the full-resolution original is still sent to Gemini for analysis —
  * only the stored/displayed copy is compressed.
  */
+/**
+ * Extract a representative frame from a video file and return it as a
+ * compressed JPEG data URL — the same shape `compressImageToDataUrl` produces.
+ * We seek to 30 % of the duration (or 1 s, whichever is smaller) so we land on
+ * an actual scene rather than a black leader frame.
+ */
+export function extractFrameFromVideo(
+  file: File,
+  maxDimension = 800,
+  quality = 0.6,
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.muted = true;
+    video.playsInline = true;
+
+    video.onloadedmetadata = () => {
+      video.currentTime = Math.min(video.duration * 0.3, 1);
+    };
+
+    video.onseeked = () => {
+      try {
+        URL.revokeObjectURL(url);
+        const scale = Math.min(
+          1,
+          maxDimension / Math.max(video.videoWidth || 640, video.videoHeight || 480),
+        );
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round((video.videoWidth || 640) * scale);
+        canvas.height = Math.round((video.videoHeight || 480) * scale);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { reject(new Error('Canvas 2D unavailable')); return; }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        let out = canvas.toDataURL('image/jpeg', quality);
+        if (out.length > 950_000) {
+          canvas.width = Math.round(canvas.width * 0.75);
+          canvas.height = Math.round(canvas.height * 0.75);
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          out = canvas.toDataURL('image/jpeg', 0.5);
+        }
+        resolve(out);
+      } catch (err) {
+        reject(err);
+      }
+    };
+
+    video.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Failed to load video for frame extraction.'));
+    };
+
+    video.src = url;
+  });
+}
+
+/**
+ * Unified helper: compresses an image or extracts a frame from a video,
+ * always returning a JPEG data URL suitable for Firestore + Gemini.
+ */
+export function mediaToImageDataUrl(file: File): Promise<string> {
+  return file.type.startsWith('video/')
+    ? extractFrameFromVideo(file)
+    : compressImageToDataUrl(file);
+}
+
 export async function compressImageToDataUrl(
   file: File,
   maxDimension = 800,
