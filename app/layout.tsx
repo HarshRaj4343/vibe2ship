@@ -45,10 +45,10 @@ export default function RootLayout({
         <AuthProvider>
          <I18nProvider>
           <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4">
-            <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 rounded-full border border-white/60 bg-gradient-to-r from-sarvam-sky/40 via-sarvam-peach/50 to-sarvam-sky/40 px-4 py-2.5 shadow-[0_8px_30px_-12px_rgba(28,27,46,0.25)] backdrop-blur-xl sm:px-6">
+            <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 rounded-full border border-white/60 bg-gradient-to-r from-sarvam-sky/40 via-sarvam-peach/50 to-sarvam-sky/40 px-4 py-2.5 shadow-[0_8px_30px_-12px_rgba(28,27,46,0.25)] backdrop-blur-xl sm:px-5">
               <Link
                 href="/"
-                className="flex items-center gap-2 font-serif text-xl font-semibold tracking-tight text-ink"
+                className="flex shrink-0 items-center gap-2 font-serif text-xl font-semibold tracking-tight text-ink"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -58,20 +58,21 @@ export default function RootLayout({
                 />
                 UrbanPulse
               </Link>
+              <div className="hidden h-4 w-px shrink-0 bg-ink/15 md:block" />
               <nav className="flex items-center gap-2">
                 <div className="hidden items-center gap-1 md:flex">
                   {NAV.map((n) => (
                     <Link
                       key={n.href}
                       href={n.href}
-                      className="rounded-full px-3.5 py-1.5 text-sm font-medium text-ink/70 transition hover:bg-white/50 hover:text-ink"
+                      className="whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium text-ink/70 transition hover:bg-white/50 hover:text-ink"
                     >
                       {n.label}
                     </Link>
                   ))}
                   <Link
                     href="/report"
-                    className="ml-1 rounded-full bg-ink px-5 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ink/90"
+                    className="ml-1 whitespace-nowrap rounded-full bg-ink px-5 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ink/90"
                   >
                     + Report
                   </Link>

@@ -36,7 +36,7 @@ export default function AuthNav() {
             }
           }}
           disabled={busy}
-          className="flex items-center gap-2 rounded-full border border-ink/15 bg-white/80 px-4 py-1.5 text-sm font-medium text-ink transition hover:bg-white disabled:opacity-60"
+          className="flex items-center gap-2 whitespace-nowrap rounded-full border border-ink/15 bg-white/80 px-4 py-1.5 text-sm font-medium text-ink transition hover:bg-white disabled:opacity-60"
         >
           {busy ? 'Signing in…' : 'Sign in'}
         </button>

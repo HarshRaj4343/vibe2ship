@@ -39,7 +39,8 @@ interface Message {
 
 let msgId = 0;
 function now(): string {
-  return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
 function ticketId(): string {
@@ -363,7 +364,7 @@ function Bubble({ m }: { m: Message }) {
           />
         )}
         {m.content && <div className="leading-relaxed">{m.content}</div>}
-        <span className="mt-0.5 flex items-center justify-end gap-0.5 text-[10px] text-ink/40">
+        <span className="mt-0.5 flex items-center justify-end gap-0.5 text-[10px] text-ink/40" suppressHydrationWarning>
           {m.time}
           {isUser && <Check className="h-3 w-3 text-sky-500" />}
         </span>
