@@ -2,7 +2,7 @@ import Link from 'next/link';
 import LandingStats from '@/components/LandingStats';
 import Reveal from '@/components/Reveal';
 import { T } from '@/lib/i18n';
-import { Search, Radar, Mail, Mic, RotateCw, BarChart3 } from '@/components/icons';
+import { Search, Radar, Mail, Mic, RotateCw, BarChart3, Bot } from '@/components/icons';
 
 const PIPELINE = [
   { n: '1', title: 'Validate', body: 'Is it a real civic issue?' },
@@ -128,6 +128,12 @@ export default function Home() {
               className="btn-primary px-7 py-3.5 transition hover:-translate-y-0.5 hover:shadow-lg"
             >
               <T>Report an issue</T>
+            </Link>
+            <Link
+              href="/agent"
+              className="btn-ghost flex items-center gap-2 px-7 py-3.5 transition hover:-translate-y-0.5"
+            >
+              <Bot className="h-4 w-4" /> Watch the AI agent work
             </Link>
             <Link
               href="/command"

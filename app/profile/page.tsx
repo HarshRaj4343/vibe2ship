@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
-import { BADGES } from '@/lib/points';
-import { UserCircle } from '@/components/icons';
-import EmptyState from '@/components/EmptyState';
+import { BADGES, POINTS } from '@/lib/points';
+import { UserCircle, ArrowRight } from '@/components/icons';
 
 interface Profile {
   name: string;
@@ -59,13 +59,62 @@ export default function ProfilePage() {
   }
 
   if (!profile) {
+    const POINT_RULES: Array<{ label: string; pts: number }> = [
+      { label: 'Report a civic issue', pts: POINTS.REPORT_ISSUE },
+      { label: 'Verify a nearby report', pts: POINTS.VERIFY_ISSUE },
+      { label: 'Your report gets resolved', pts: POINTS.ISSUE_RESOLVED },
+      { label: 'First-ever report bonus', pts: POINTS.FIRST_REPORT },
+      { label: '3+ reports in a week (streak)', pts: POINTS.STREAK_BONUS },
+    ];
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16">
-        <EmptyState
-          icon={<UserCircle className="h-6 w-6" />}
-          title="You haven't reported anything yet"
-          hint="Report your first issue to start earning points and badges."
-        />
+      <div className="mx-auto max-w-3xl space-y-8 px-4 py-8">
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-white/60 bg-gradient-to-r from-sarvam-sky/25 via-white/60 to-sarvam-peach/25 p-8 text-center shadow-[0_10px_40px_-20px_rgba(28,27,46,0.35)] backdrop-blur">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sarvam-sky/30 text-sarvam-blue">
+            <UserCircle className="h-9 w-9" />
+          </div>
+          <h1 className="font-serif text-2xl font-medium text-ink">Start earning civic points</h1>
+          <p className="max-w-md text-ink/60">
+            Report your first issue and you&apos;ll unlock points and badges as the
+            community resolves it. No sign-up required — your progress is saved to this device.
+          </p>
+          <Link
+            href="/report"
+            className="btn-primary mt-2 inline-flex items-center gap-2 px-7 py-3 transition hover:-translate-y-0.5 hover:shadow-lg"
+          >
+            Report your first issue <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <div className="glass-card p-6">
+          <h2 className="mb-4 font-semibold text-ink">How points work</h2>
+          <ul className="divide-y divide-white/60">
+            {POINT_RULES.map((r) => (
+              <li key={r.label} className="flex items-center justify-between py-3">
+                <span className="text-sm text-ink/70">{r.label}</span>
+                <span className="rounded-full bg-sarvam-blue/10 px-3 py-1 text-sm font-semibold text-sarvam-blue">
+                  +{r.pts}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h2 className="mb-3 font-semibold text-ink">Badges to unlock</h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {BADGES.map((b) => (
+              <div
+                key={b.id}
+                className="flex flex-col items-center rounded-2xl border border-white/50 bg-white/40 p-4 text-center opacity-60 backdrop-blur transition hover:opacity-80"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={b.icon} alt={b.name} className="h-14 w-14 object-contain grayscale" />
+                <p className="mt-2 text-xs font-medium text-ink/70">{b.name}</p>
+                <span className="mt-1 text-[10px] text-ink/40">Locked</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
