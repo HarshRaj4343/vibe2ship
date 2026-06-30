@@ -18,6 +18,7 @@
 [![Firebase](https://img.shields.io/badge/Firebase-Firestore-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com)
 [![Cloud Run](https://img.shields.io/badge/Cloud%20Run-Deployed-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![Tests](https://img.shields.io/badge/Vitest-27%20passing-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)](#testing)
 
 ### **[▶ Try the live app](https://urbanpulse-h2uigix6dq-el.a.run.app)**  ·  Citizens photograph a civic problem → a Gemini agent triages, routes, and *verifies the fix* — closing the loop no government portal does.
 
@@ -785,7 +786,24 @@ Available commands:
 | `npm run build` | Production build (`output: 'standalone'`) |
 | `npm run start` | Serve the production build |
 | `npm run lint` | Next.js ESLint |
+| `npm test` | Run the Vitest unit suite (27 tests) |
+| `npm run test:watch` | Vitest in watch mode |
 | `npm run seed` | Load demo issues + users into Firestore |
+
+### Testing
+
+The pure business logic — gamification, SLA, impact, and predictive analytics — is covered by a **27-test Vitest suite** in `tests/`. These are the functions that produce the numbers users actually see on the dashboard and admin board, so locking their behaviour down catches silent regressions.
+
+```bash
+npm test
+#  ✓ tests/points.test.ts   (6)   points & badge thresholds
+#  ✓ tests/sla.test.ts      (7)   SLA targets, overdue detection, dept aggregation
+#  ✓ tests/impact.test.ts   (8)   median, dedup counting, staff-hours saved
+#  ✓ tests/predict.test.ts  (6)   fix forecasts, severity weighting, determinism
+#  Test Files  4 passed (4)  ·  Tests  27 passed (27)
+```
+
+Firebase/Next-coupled modules (API routes, `lib/gemini.ts`, `lib/geo.ts`) are intentionally out of scope for these unit tests — they're exercised end-to-end against the live deployment instead.
 
 ---
 
