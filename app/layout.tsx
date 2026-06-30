@@ -8,6 +8,7 @@ import AuthNav from '@/components/AuthNav';
 import MobileNav from '@/components/MobileNav';
 import LanguageToggle from '@/components/LanguageToggle';
 import StatusNotifier from '@/components/StatusNotifier';
+import Onboarding from '@/components/Onboarding';
 
 const inter = Inter({ subsets: ['latin'] });
 const newsreader = Newsreader({
@@ -86,6 +87,7 @@ export default function RootLayout({
           <main className="pb-20 md:pb-0">{children}</main>
           <MobileNav />
           <StatusNotifier />
+          <Onboarding />
          </I18nProvider>
         </AuthProvider>
       </body>

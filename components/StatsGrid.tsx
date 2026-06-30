@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import CountUp from '@/components/CountUp';
 
 interface Stat {
   label: string;
@@ -25,7 +26,13 @@ export default function StatsGrid({ stats }: { stats: Stat[] }) {
               {s.icon}
             </span>
           </div>
-          <p className="mt-3 font-serif text-3xl font-medium text-ink">{s.value}</p>
+          <p className="mt-3 font-serif text-3xl font-medium text-ink">
+            {typeof s.value === 'number' ? (
+              <CountUp value={s.value} />
+            ) : (
+              s.value
+            )}
+          </p>
         </div>
       ))}
     </div>

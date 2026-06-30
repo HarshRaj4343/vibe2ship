@@ -10,6 +10,7 @@ import {
 } from '@vis.gl/react-google-maps';
 import type { SerializedIssue } from '@/lib/types';
 import { CATEGORY_COLORS } from '@/lib/types';
+import CategoryIcon from '@/components/CategoryIcon';
 
 const DEFAULT_CENTER = { lat: 28.6139, lng: 77.209 }; // New Delhi fallback
 
@@ -80,8 +81,8 @@ function IssuePins({
 }) {
   return (
     <>
-      {issues.map((issue) => {
-        const size = 18 + issue.severity * 5; // severity-proportional pin size
+      {issues.map((issue, i) => {
+        const size = 26 + issue.severity * 4; // severity-proportional pin size
         return (
           <AdvancedMarker
             key={issue.id}
@@ -89,14 +90,22 @@ function IssuePins({
             onClick={() => onSelect(issue)}
           >
             <div
-              className="rounded-full border-2 border-white shadow-md transition-transform hover:scale-110"
+              className="animate-pin-drop flex items-center justify-center rounded-full border-2 border-white text-white shadow-md transition-transform hover:scale-110"
               style={{
                 width: size,
                 height: size,
                 backgroundColor: CATEGORY_COLORS[issue.category],
+                // Stagger the drop so a cluster cascades in rather than popping
+                // all at once. Capped so a busy map still finishes quickly.
+                animationDelay: `${Math.min(i * 45, 600)}ms`,
               }}
               title={issue.title}
-            />
+            >
+              <CategoryIcon
+                category={issue.category}
+                style={{ width: size * 0.55, height: size * 0.55 }}
+              />
+            </div>
           </AdvancedMarker>
         );
       })}

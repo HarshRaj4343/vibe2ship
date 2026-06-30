@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import IssueMap from '@/components/IssueMap';
 import CategoryBadge from '@/components/CategoryBadge';
 import StatusBadge from '@/components/StatusBadge';
+import StatusTracker from '@/components/StatusTracker';
 import SeverityBar from '@/components/SeverityBar';
 import PointsToast from '@/components/PointsToast';
 import ResolutionVerifier from '@/components/ResolutionVerifier';
@@ -12,11 +13,8 @@ import ComplaintDrafter from '@/components/ComplaintDrafter';
 import AgentTrace from '@/components/AgentTrace';
 import { useAuth } from '@/lib/auth';
 import type { IssueStatus, ResolutionVerification, SerializedIssue } from '@/lib/types';
-import { STATUS_LABELS } from '@/lib/types';
 import EmptyState from '@/components/EmptyState';
 import { HelpCircle, AlertTriangle, Check, Bot, ArrowUp, Clock } from '@/components/icons';
-
-const STATUS_ORDER: IssueStatus[] = ['open', 'in_progress', 'resolved'];
 
 export default function IssueDetailPage() {
   const params = useParams<{ id: string }>();
@@ -110,8 +108,6 @@ export default function IssueDetailPage() {
       </div>
     );
   }
-
-  const currentStep = STATUS_ORDER.indexOf(issue.status);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -224,39 +220,15 @@ export default function IssueDetailPage() {
         <ComplaintDrafter issueId={issue.id} existing={issue.complaint} />
       </div>
 
-      {/* Status timeline */}
+      {/* Plain-language status tracker (bilingual, tap to update) */}
       <div className="mt-6">
-        <h2 className="mb-3 font-semibold text-ink">Status timeline</h2>
-        <div className="flex items-center">
-          {STATUS_ORDER.map((s, i) => (
-            <div key={s} className="flex flex-1 items-center last:flex-none">
-              <button
-                onClick={() => updateStatus(s)}
-                className={`flex flex-col items-center ${
-                  i <= currentStep ? 'text-sarvam-blue' : 'text-ink/30'
-                }`}
-                title="Click to set status"
-              >
-                <span
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${
-                    i <= currentStep
-                      ? 'bg-gradient-to-br from-sarvam-blue to-sarvam-orange text-white'
-                      : 'bg-ink/10'
-                  }`}
-                >
-                  {i + 1}
-                </span>
-                <span className="mt-1 text-xs font-medium">{STATUS_LABELS[s]}</span>
-              </button>
-              {i < STATUS_ORDER.length - 1 && (
-                <div
-                  className={`mx-2 h-0.5 flex-1 ${
-                    i < currentStep ? 'bg-sarvam-blue' : 'bg-ink/10'
-                  }`}
-                />
-              )}
-            </div>
-          ))}
+        <h2 className="mb-3 font-semibold text-ink">Status</h2>
+        <div className="glass-card p-4">
+          <StatusTracker
+            status={issue.status}
+            verifiedCount={issue.verifiedCount}
+            onSet={updateStatus}
+          />
         </div>
       </div>
 

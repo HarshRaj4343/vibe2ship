@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import CountUp from '@/components/CountUp';
 import type { SerializedIssue } from '@/lib/types';
 
 export default function LandingStats() {
@@ -44,7 +45,7 @@ export default function LandingStats() {
             {it.value === undefined ? (
               <span className="inline-block h-8 w-10 animate-pulse rounded bg-white/50" />
             ) : (
-              it.value
+              <CountUp value={it.value} />
             )}
           </p>
           <p className="mt-1 text-xs font-medium text-ink/55">{it.label}</p>

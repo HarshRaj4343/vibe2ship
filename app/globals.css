@@ -82,8 +82,19 @@ a {
     @apply rounded-full border border-ink/15 bg-white/70 font-medium text-ink backdrop-blur transition hover:bg-white;
   }
 
+  /* Shimmer skeleton: a light sweep travels across the placeholder surface.
+     Falls back to a static tint under prefers-reduced-motion (handled in base). */
   .skeleton {
-    @apply animate-pulse rounded-3xl bg-white/40;
+    @apply rounded-3xl;
+    background-image: linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0.35) 30%,
+      rgba(255, 255, 255, 0.75) 50%,
+      rgba(255, 255, 255, 0.35) 70%
+    );
+    background-size: 200% 100%;
+    background-color: rgba(255, 255, 255, 0.4);
+    @apply animate-shimmer;
   }
 
   /* Tactile lift on interactive glass cards — Sarvam-tinted shadow. */

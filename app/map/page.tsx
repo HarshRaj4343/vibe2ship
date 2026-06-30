@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import IssueMap from '@/components/IssueMap';
+import MapLegend from '@/components/MapLegend';
 import CategoryBadge from '@/components/CategoryBadge';
 import StatusBadge from '@/components/StatusBadge';
 import SeverityBar from '@/components/SeverityBar';
@@ -126,6 +127,8 @@ export default function MapPage() {
           showHeatmap={showHeatmap}
         />
       )}
+
+      {!loading && !showHeatmap && <MapLegend />}
 
       {/* Side panel */}
       {selected && (

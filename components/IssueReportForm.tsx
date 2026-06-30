@@ -24,7 +24,8 @@ interface Coords {
 export default function IssueReportForm() {
   const router = useRouter();
   const { identity } = useAuth();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null); // camera (capture)
+  const galleryInputRef = useRef<HTMLInputElement>(null); // gallery upload
 
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -181,12 +182,12 @@ export default function IssueReportForm() {
         }}
         onDragLeave={() => setDragActive(false)}
         onDrop={onDrop}
-        onClick={() => fileInputRef.current?.click()}
-        className={`flex cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed p-6 backdrop-blur transition ${
+        onClick={() => preview && fileInputRef.current?.click()}
+        className={`flex flex-col items-center justify-center rounded-3xl border-2 border-dashed p-6 backdrop-blur transition ${
           dragActive
             ? 'border-sarvam-blue bg-sarvam-sky/15'
             : 'border-ink/20 bg-white/50'
-        }`}
+        } ${preview ? 'cursor-pointer' : ''}`}
       >
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -196,19 +197,50 @@ export default function IssueReportForm() {
             className="max-h-64 w-full rounded-lg object-contain"
           />
         ) : (
-          <div className="py-8 text-center">
-            <Camera className="mx-auto h-8 w-8 text-ink/40" />
-            <p className="mt-2 font-medium text-ink/70">
-              Drag &amp; drop a photo, or tap to choose
+          <div className="py-6 text-center">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-sarvam-sky/25 text-sarvam-blue">
+              <Camera className="h-7 w-7" />
+            </span>
+            <p className="mt-3 font-medium text-ink/80">Take a photo of the issue</p>
+            <p className="mt-0.5 text-sm text-ink/45">
+              Point your camera at the pothole, leak, light or waste
             </p>
-            <p className="text-sm text-ink/40">Show the civic issue clearly</p>
+            {/* Camera-first: the big button opens the camera; gallery is secondary. */}
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="btn-primary inline-flex min-h-[44px] items-center gap-2 px-5 py-3 text-sm"
+              >
+                <Camera className="h-4 w-4" /> Take a photo
+              </button>
+              <button
+                type="button"
+                onClick={() => galleryInputRef.current?.click()}
+                className="btn-ghost inline-flex min-h-[44px] items-center px-5 py-3 text-sm"
+              >
+                Upload
+              </button>
+            </div>
           </div>
         )}
+        {/* Camera input (rear camera on mobile) */}
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
           capture="environment"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) handleFile(f);
+          }}
+        />
+        {/* Gallery input (no capture → file picker) */}
+        <input
+          ref={galleryInputRef}
+          type="file"
+          accept="image/*"
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];

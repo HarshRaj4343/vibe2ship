@@ -113,11 +113,11 @@ export default function ProfilePage() {
             return (
               <div
                 key={b.id}
-                style={{ animationDelay: `${i * 90}ms` }}
-                className={`group flex animate-fade-up flex-col items-center rounded-2xl border p-4 text-center backdrop-blur transition duration-300 ${
+                style={{ animationDelay: `${i * 110}ms` }}
+                className={`group flex flex-col items-center rounded-2xl border p-4 text-center backdrop-blur transition duration-300 ${
                   earned
-                    ? 'border-sarvam-peach/60 bg-sarvam-peach/25 hover:-translate-y-1 hover:shadow-[0_16px_40px_-20px_rgba(255,138,61,0.6)]'
-                    : 'border-white/50 bg-white/40 opacity-50 hover:opacity-70'
+                    ? 'animate-badge-pop border-sarvam-peach/60 bg-sarvam-peach/25 hover:-translate-y-1 hover:shadow-[0_16px_40px_-20px_rgba(255,138,61,0.6)]'
+                    : 'animate-fade-up border-white/50 bg-white/40 opacity-50 hover:opacity-70'
                 }`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}

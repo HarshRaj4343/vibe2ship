@@ -99,18 +99,19 @@ export default function Home() {
             <T>India&apos;s civic resolution agent</T>
           </p>
           <h1
-            className="mx-auto mt-5 max-w-3xl animate-fade-up font-serif text-5xl font-medium leading-[1.05] tracking-tight text-ink sm:text-7xl"
+            className="mx-auto mt-5 max-w-4xl animate-fade-up font-serif text-5xl font-medium leading-[1.05] tracking-tight text-ink sm:text-7xl"
             style={{ animationDelay: '140ms' }}
           >
-            <T>Civic action for all</T>
+            <T>A photo should be enough to fix your street.</T>
           </h1>
           <p
-            className="mx-auto mt-6 max-w-xl animate-fade-up text-lg text-ink/70"
+            className="mx-auto mt-6 max-w-2xl animate-fade-up text-lg text-ink/70"
             style={{ animationDelay: '220ms' }}
           >
             <T>
-              Snap a photo. An autonomous AI agent validates, triages, routes and
-              drafts the complaint — then confirms it was actually resolved.
+              Reporting a civic problem shouldn&apos;t mean forms, queues, or complaints
+              that vanish. UrbanPulse turns one tap into a triaged, routed, and tracked
+              case — and refuses to call it resolved until the AI sees proof.
             </T>
           </p>
           <div

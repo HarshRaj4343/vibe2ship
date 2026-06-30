@@ -1,21 +1,30 @@
 'use client';
 
+'use client';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Map, BarChart3, Plus, Radar, UserCircle, Bot } from '@/components/icons';
+import { useI18n } from '@/lib/i18n';
+import { Map, Plus, Radar, UserCircle, Bot } from '@/components/icons';
 
+// Hindi labels are hardcoded so the bottom nav stays bilingual even without the
+// Cloud Translation key. `en`/`hi` are chosen from the language toggle.
 const ITEMS = [
-  { href: '/map', label: 'Map', Icon: Map },
-  { href: '/agent', label: 'Agent', Icon: Bot },
-  { href: '/report', label: 'Report', Icon: Plus, primary: true },
-  { href: '/command', label: 'Command', Icon: Radar },
-  { href: '/profile', label: 'Profile', Icon: UserCircle },
+  { href: '/map', en: 'Map', hi: 'नक्शा', Icon: Map },
+  { href: '/agent', en: 'Agent', hi: 'एजेंट', Icon: Bot },
+  { href: '/report', en: 'Report', hi: 'रिपोर्ट', Icon: Plus, primary: true },
+  { href: '/command', en: 'Command', hi: 'कमांड', Icon: Radar },
+  { href: '/profile', en: 'Profile', hi: 'प्रोफ़ाइल', Icon: UserCircle },
 ];
 
 export default function MobileNav() {
   const pathname = usePathname();
+  const { lang } = useI18n();
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/60 bg-white/80 backdrop-blur-xl md:hidden">
+    <nav
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-white/60 bg-white/80 backdrop-blur-xl md:hidden"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
       <div className="mx-auto flex max-w-md items-stretch justify-around">
         {ITEMS.map((it) => {
           const active = pathname === it.href;
@@ -23,12 +32,13 @@ export default function MobileNav() {
             <Link
               key={it.href}
               href={it.href}
-              className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium transition ${
+              aria-label={it.en}
+              className={`flex min-h-[56px] flex-1 flex-col items-center justify-center gap-0.5 py-1.5 text-[11px] font-medium transition ${
                 active ? 'text-ink' : 'text-ink/50'
               }`}
             >
               <span
-                className={`flex h-9 w-9 items-center justify-center rounded-full ${
+                className={`flex h-11 w-11 items-center justify-center rounded-full ${
                   it.primary
                     ? 'bg-ink text-white shadow'
                     : active
@@ -36,9 +46,9 @@ export default function MobileNav() {
                       : ''
                 }`}
               >
-                <it.Icon className="h-[18px] w-[18px]" />
+                <it.Icon className="h-[20px] w-[20px]" />
               </span>
-              {it.label}
+              {lang === 'hi' ? it.hi : it.en}
             </Link>
           );
         })}
