@@ -99,13 +99,18 @@ export default function Home() {
             <T>India&apos;s civic resolution agent</T>
           </p>
           <h1
-            className="mx-auto mt-5 max-w-4xl animate-fade-up font-serif text-5xl font-medium leading-[1.05] tracking-tight text-ink sm:text-7xl"
+            className="mx-auto mt-5 max-w-3xl animate-fade-up font-serif font-medium leading-[1.08] tracking-tight text-ink"
             style={{ animationDelay: '140ms' }}
           >
-            <T>A photo should be enough to fix your street.</T>
+            <span className="block text-5xl sm:text-7xl">
+              <T>Broken streets.</T>
+            </span>
+            <span className="block text-5xl text-sarvam-blue sm:text-7xl">
+              <T>One photo at a time.</T>
+            </span>
           </h1>
           <p
-            className="mx-auto mt-6 max-w-2xl animate-fade-up text-lg text-ink/70"
+            className="mx-auto mt-7 max-w-xl animate-fade-up text-lg leading-relaxed text-ink/60"
             style={{ animationDelay: '220ms' }}
           >
             <T>
