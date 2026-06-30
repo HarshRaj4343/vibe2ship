@@ -28,6 +28,7 @@ substitutions:
   _FIREBASE_MESSAGING_SENDER_ID: ''
   _FIREBASE_APP_ID: ''
   _MAPS_API_KEY: ''
+  _GOOGLE_TRANSLATE_API_KEY: ''
   _APP_URL: ''
 
 options:
@@ -84,7 +85,7 @@ steps:
       - '--port'
       - '3080'
       - '--set-env-vars'
-      - 'GEMINI_API_KEY=${_GEMINI_API_KEY}'
+      - 'GEMINI_API_KEY=${_GEMINI_API_KEY},GOOGLE_TRANSLATE_API_KEY=${_GOOGLE_TRANSLATE_API_KEY}'
 
 images:
   - 'gcr.io/$PROJECT_ID/${_SERVICE}:$BUILD_ID'

@@ -396,3 +396,34 @@ export function Construction(props: IconProps) {
     </Icon>
   );
 }
+
+export function Tag(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+      <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+    </Icon>
+  );
+}
+
+export function Ticket(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+      <path d="M13 5v2" />
+      <path d="M13 17v2" />
+      <path d="M13 11v2" />
+    </Icon>
+  );
+}
+
+export function HandMetal(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M18 12.5V10a2 2 0 0 0-2-2 2 2 0 0 0-2 2v1.4" />
+      <path d="M14 11V9a2 2 0 1 0-4 0v2" />
+      <path d="M10 10.5V5a2 2 0 1 0-4 0v9" />
+      <path d="m7 15-1.76-1.76a2 2 0 0 0-2.83 2.82l3.6 3.6C7.5 21.14 9.2 22 11 22h1a8 8 0 0 0 8-8V7a2 2 0 1 0-4 0v5" />
+    </Icon>
+  );
+}

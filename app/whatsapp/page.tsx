@@ -4,7 +4,19 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { CATEGORY_LABELS } from '@/lib/types';
 import type { IssueAnalysis } from '@/lib/types';
-import { Camera, Send, Check } from '@/components/icons';
+import {
+  Camera,
+  Send,
+  Check,
+  Search,
+  AlertTriangle,
+  HelpCircle,
+  CheckCircle,
+  MapPin,
+  Tag,
+  Building,
+  Ticket,
+} from '@/components/icons';
 
 /**
  * Mocked WhatsApp / SMS reporting channel — the "moonshot" accessibility play.
@@ -20,8 +32,8 @@ type Sender = 'bot' | 'user';
 interface Message {
   id: number;
   from: Sender;
-  text?: string;
-  image?: string; // data URL for an image bubble
+  content?: React.ReactNode;
+  image?: string;
   time: string;
 }
 
@@ -35,17 +47,45 @@ function ticketId(): string {
   return `UP-2026-${n}`;
 }
 
+function SeverityBar({ severity }: { severity: number }) {
+  return (
+    <span className="flex items-center gap-1">
+      <span className="text-xs text-ink/50">Severity</span>
+      <span className="flex gap-0.5">
+        {Array.from({ length: 5 }, (_, i) => (
+          <span
+            key={i}
+            className={`h-2 w-3.5 rounded-sm ${i < severity ? 'bg-red-500' : 'bg-ink/15'}`}
+          />
+        ))}
+      </span>
+      <span className="text-xs text-ink/50">{severity}/5</span>
+    </span>
+  );
+}
+
 const GREETING: Message[] = [
   {
     id: msgId++,
     from: 'bot',
-    text: '👋 Namaste! This is the *UrbanPulse* civic bot. Spotted a pothole, leak, broken light or garbage? Just send me a photo and I\'ll file it with the right department.',
+    content: (
+      <span>
+        Namaste! This is the <strong>UrbanPulse</strong> civic bot. Spotted a
+        pothole, leak, broken light or garbage? Just send me a photo and I&apos;ll
+        file it with the right department.
+      </span>
+    ),
     time: now(),
   },
   {
     id: msgId++,
     from: 'bot',
-    text: '📷 Tap the camera below to send a photo of the issue.',
+    content: (
+      <span className="flex items-center gap-2">
+        <Camera className="h-4 w-4 shrink-0 text-emerald-600" />
+        <span>Tap the camera below to send a photo of the issue.</span>
+      </span>
+    ),
     time: now(),
   },
 ];
@@ -67,13 +107,19 @@ export default function WhatsAppPage() {
 
   async function handleFile(file: File) {
     setBusy(true);
-    // Show the citizen's photo bubble immediately.
     const previewUrl = URL.createObjectURL(file);
     push({ from: 'user', image: previewUrl });
 
-    // Bot acknowledges, then "types" while the real pipeline runs.
     await delay(500);
-    push({ from: 'bot', text: '🔍 Got it — analysing the photo with our AI agent…' });
+    push({
+      from: 'bot',
+      content: (
+        <span className="flex items-center gap-2">
+          <Search className="h-4 w-4 shrink-0 text-sarvam-blue" />
+          <span>Got it — analysing the photo with our AI agent…</span>
+        </span>
+      ),
+    });
     setTyping(true);
 
     try {
@@ -86,7 +132,15 @@ export default function WhatsAppPage() {
       if (!res.ok || !data.analysis) {
         push({
           from: 'bot',
-          text: '⚠️ Sorry, I couldn\'t analyse that one. Please try a clearer, well-lit photo of the issue.',
+          content: (
+            <span className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+              <span>
+                Sorry, I couldn&apos;t analyse that one. Please try a clearer,
+                well-lit photo of the issue.
+              </span>
+            </span>
+          ),
         });
         return;
       }
@@ -97,7 +151,12 @@ export default function WhatsAppPage() {
       setTyping(false);
       push({
         from: 'bot',
-        text: '⚠️ Network hiccup. Please send the photo again in a moment.',
+        content: (
+          <span className="flex items-start gap-2">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+            <span>Network hiccup. Please send the photo again in a moment.</span>
+          </span>
+        ),
       });
     } finally {
       setBusy(false);
@@ -109,29 +168,69 @@ export default function WhatsAppPage() {
       await delay(300);
       push({
         from: 'bot',
-        text: `🤔 This doesn't look like a reportable civic issue${
-          a.rejectionReason ? ` — ${a.rejectionReason}` : ''
-        }. If you think that's wrong, send another angle.`,
+        content: (
+          <span className="flex items-start gap-2">
+            <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-ink/50" />
+            <span>
+              This doesn&apos;t look like a reportable civic issue
+              {a.rejectionReason ? ` — ${a.rejectionReason}` : ''}. If you
+              think that&apos;s wrong, send another angle.
+            </span>
+          </span>
+        ),
       });
       return;
     }
 
     const ticket = ticketId();
-    const sev = '🟥'.repeat(a.severity) + '⬜'.repeat(5 - a.severity);
 
     await delay(300);
     push({
       from: 'bot',
-      text: `✅ *Issue registered!*\n\n📌 ${a.suggestedTitle}\n🏷️ Category: ${
-        CATEGORY_LABELS[a.category]
-      }\n⚠️ Severity: ${a.severity}/5 ${sev}${
-        a.safetyRisk ? '\n🚨 Safety risk flagged' : ''
-      }\n🏛️ Routed to: ${a.routeTo}`,
+      content: (
+        <div className="space-y-2">
+          <p className="flex items-center gap-1.5 font-semibold text-emerald-700">
+            <CheckCircle className="h-4 w-4" />
+            Issue registered!
+          </p>
+          <div className="space-y-1 border-t border-ink/10 pt-2 text-sm">
+            <p className="flex items-start gap-2">
+              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink/50" />
+              <span>{a.suggestedTitle}</span>
+            </p>
+            <p className="flex items-center gap-2">
+              <Tag className="h-3.5 w-3.5 shrink-0 text-ink/50" />
+              <span>{CATEGORY_LABELS[a.category]}</span>
+            </p>
+            <SeverityBar severity={a.severity} />
+            {a.safetyRisk && (
+              <p className="flex items-center gap-2 font-medium text-red-600">
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                Safety risk flagged
+              </p>
+            )}
+            <p className="flex items-center gap-2">
+              <Building className="h-3.5 w-3.5 shrink-0 text-ink/50" />
+              <span>Routed to: {a.routeTo}</span>
+            </p>
+          </div>
+        </div>
+      ),
     });
+
     await delay(450);
     push({
       from: 'bot',
-      text: `🎫 Your tracking ID is *${ticket}*. We'll message you here when the department updates it. Thank you for keeping the city running! 🙏`,
+      content: (
+        <span className="flex items-start gap-2">
+          <Ticket className="mt-0.5 h-4 w-4 shrink-0 text-sarvam-blue" />
+          <span>
+            Your tracking ID is <strong>{ticket}</strong>. We&apos;ll message
+            you here when the department updates it. Thank you for keeping the
+            city running!
+          </span>
+        </span>
+      ),
     });
   }
 
@@ -169,7 +268,7 @@ export default function WhatsAppPage() {
           </span>
         </div>
 
-        {/* Chat body — WhatsApp's signature wallpaper tone */}
+        {/* Chat body */}
         <div
           ref={scrollRef}
           className="h-[28rem] space-y-2 overflow-y-auto bg-[#ECE5DD] px-3 py-4"
@@ -263,7 +362,7 @@ function Bubble({ m }: { m: Message }) {
             className="mb-1 max-h-48 w-full rounded-lg object-cover"
           />
         )}
-        {m.text && <p className="whitespace-pre-line leading-relaxed">{m.text}</p>}
+        {m.content && <div className="leading-relaxed">{m.content}</div>}
         <span className="mt-0.5 flex items-center justify-end gap-0.5 text-[10px] text-ink/40">
           {m.time}
           {isUser && <Check className="h-3 w-3 text-sky-500" />}

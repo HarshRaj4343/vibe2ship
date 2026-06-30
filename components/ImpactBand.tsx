@@ -79,8 +79,8 @@ export default function ImpactBand({ impact }: { impact: ImpactStats }) {
       </div>
 
       {impact.duplicatesMerged > 0 && (
-        <p className="mt-4 rounded-xl bg-sarvam-peach/30 px-4 py-2.5 text-sm font-medium text-ink/80">
-          🔁 {impact.duplicatesMerged} duplicate report
+        <p className="mt-4 flex items-center gap-2 rounded-xl bg-sarvam-peach/30 px-4 py-2.5 text-sm font-medium text-ink/80">
+          <RotateCw className="h-4 w-4 shrink-0" /> {impact.duplicatesMerged} duplicate report
           {impact.duplicatesMerged === 1 ? '' : 's'} folded into{' '}
           {impact.issuesWithDuplicates} issue
           {impact.issuesWithDuplicates === 1 ? '' : 's'} — no human triaged the

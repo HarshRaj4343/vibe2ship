@@ -9,7 +9,7 @@ import type { IssueAnalysis, IssueCategory, Severity } from '@/lib/types';
 import CategoryBadge from './CategoryBadge';
 import SeverityBar from './SeverityBar';
 import PointsToast from './PointsToast';
-import { Camera, MapPin, Sparkles, AlertTriangle, ArrowRight, Check } from './icons';
+import { Camera, MapPin, Sparkles, AlertTriangle, ArrowRight, Check, Mic } from './icons';
 
 type Stage = 'capture' | 'analyzing' | 'review' | 'submitting' | 'rejected';
 
@@ -284,7 +284,7 @@ export default function IssueReportForm() {
         />
         {heard && heard.language.toLowerCase() !== 'english' && heard.transcript && (
           <p className="rounded-xl bg-sarvam-sky/20 px-3 py-2 text-xs text-ink/60">
-            🎙️ Heard ({heard.language}): &ldquo;{heard.transcript}&rdquo; —
+            <Mic className="inline h-3.5 w-3.5 align-text-bottom" /> Heard ({heard.language}): &ldquo;{heard.transcript}&rdquo; —
             transcribed to English above.
           </p>
         )}

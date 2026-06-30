@@ -335,7 +335,7 @@ export default function AdminPage() {
         {overdue.length === 0 ? (
           <EmptyState
             icon={<CheckCircle className="h-6 w-6" />}
-            title="Nothing overdue 🎉"
+            title="Nothing overdue"
             hint="Every open issue is still within its SLA window."
           />
         ) : (
