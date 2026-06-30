@@ -19,11 +19,34 @@
 [![Cloud Run](https://img.shields.io/badge/Cloud%20Run-Deployed-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
 
+### **[▶ Try the live app](https://urbanpulse-h2uigix6dq-el.a.run.app)**  ·  Citizens photograph a civic problem → a Gemini agent triages, routes, and *verifies the fix* — closing the loop no government portal does.
+
 </div>
 
 ---
 
-## Table of Contents
+<div align="center">
+
+|  🦾 Not a chatbot — a real agent  |  🔁 Closes the loop  |  ☁️ 9 Google products  |  📊 Quantified impact  |
+|:---|:---|:---|:---|
+| Gemini **function-calling agent** chains 6 tools, **self-corrects** when confidence < 0.7, and **remembers** past sessions | AI **skeptically** compares before/after photos and **refuses to rubber-stamp** a fix that didn't happen | Gemini · Firestore · Auth · FCM · Maps · Translation · Cloud Run · Cloud Build · Artifact Registry | **81** duplicate reports auto-folded into **18** issues · **~24 staff-hours** saved |
+
+</div>
+
+> **Built for the Vibe2Ship hackathon** (Coding Ninjas × Google for Developers). Live on Cloud Run, fully working end-to-end — report a real pothole and watch the agent triage and route it in seconds.
+
+### 🎯 Why this is *agentically deep*, not just an AI wrapper
+
+Most "AI" civic apps make **one** model call and display the output. UrbanPulse runs a genuine agentic system:
+
+- **🛠️ Autonomous tool-use agent** (`lib/agent.ts`) — Gemini decides its *own* order across 6 tools: validate → critique → dedup → history-lookup → route → create. [See the flow ↓](#-autonomous-tool-use-agent-agent)
+- **🔍 Self-correction** — when the model's confidence in a category drops below 0.7, it calls `critique_analysis` to challenge itself *before* acting, then adopts the critique's verdict.
+- **🧠 Persistent memory** (`lib/agent-memory.ts`) — the agent writes insights to Firestore after each session and reads them back next time, so routing gets smarter over time.
+- **📡 Streaming reasoning** — the Municipal Command Center streams the agent's plan step-by-step over SSE as it reasons across *every* open issue. [/command ↓](#pages)
+- **🚫 Verification with teeth** — `verifyResolution` is prompted to be *skeptical*; an "after" photo that doesn't clearly show the fix gets rejected, so issues can't be falsely closed.
+
+<details>
+<summary><b>📖 Table of Contents</b></summary>
 
 - [What it does](#what-it-does)
 - [The 4-Step AI Pipeline](#the-4-step-ai-pipeline)
@@ -50,13 +73,15 @@
 - [Tech Stack & Design System](#tech-stack--design-system)
 - [Live Stats](#live-stats)
 
+</details>
+
 ---
 
 ## What it does
 
 Citizens photograph potholes, leaks, broken lights, or waste. A **Gemini Vision agent** triages each report in seconds — validating it, categorizing it, scoring its severity, and routing it to the right municipal department. The system deduplicates nearby reports, drafts formal complaint letters, and refuses to mark anything resolved until AI sees before/after proof.
 
-> Built for the **Vibe2Ship hackathon** (Coding Ninjas × Google for Developers). Powered end-to-end on Google: Gemini · Firestore · Firebase Auth · FCM · Maps · Cloud Translation · Cloud Run · Cloud Build.
+> Powered end-to-end on Google: Gemini · Firestore · Firebase Auth · FCM · Maps · Cloud Translation · Cloud Run · Cloud Build.
 
 ---
 
