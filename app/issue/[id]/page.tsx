@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { doc, onSnapshot, Timestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import IssueMap from '@/components/IssueMap';
 import CategoryBadge from '@/components/CategoryBadge';
 import StatusBadge from '@/components/StatusBadge';
@@ -28,22 +30,34 @@ export default function IssueDetailPage() {
   const [voting, setVoting] = useState(false);
   const [toast, setToast] = useState<number | null>(null);
 
+  // Live issue: subscribe so status changes, verifications, resolution and
+  // complaint updates stream in real time across viewers.
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch(`/api/issues/${id}`);
-        if (res.status === 404) {
+    const unsub = onSnapshot(
+      doc(db, 'issues', id),
+      (snap) => {
+        if (!snap.exists()) {
           setNotFound(true);
+          setLoading(false);
           return;
         }
-        const data = await res.json();
-        setIssue(data.issue);
-      } catch {
-        setNotFound(true);
-      } finally {
+        const data = snap.data();
+        setIssue({
+          id: snap.id,
+          ...data,
+          createdAt:
+            (data.createdAt as Timestamp | undefined)?.toMillis() ?? Date.now(),
+          updatedAt:
+            (data.updatedAt as Timestamp | undefined)?.toMillis() ?? Date.now(),
+        } as SerializedIssue);
         setLoading(false);
-      }
-    })();
+      },
+      () => {
+        setNotFound(true);
+        setLoading(false);
+      },
+    );
+    return unsub;
   }, [id]);
 
   async function upvote() {

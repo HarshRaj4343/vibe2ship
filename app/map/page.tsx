@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { collection, onSnapshot, query, orderBy, Timestamp } from 'firebase/firestore';
 import Link from 'next/link';
+import { db } from '@/lib/firebase';
 import IssueMap from '@/components/IssueMap';
 import MapLegend from '@/components/MapLegend';
 import CategoryBadge from '@/components/CategoryBadge';
@@ -32,18 +34,31 @@ export default function MapPage() {
   const [voting, setVoting] = useState(false);
   const [toast, setToast] = useState<number | null>(null);
 
+  // Live map: subscribe to the issues collection so new reports, upvotes and
+  // status changes appear in real time without a refresh.
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch('/api/issues');
-        const data = await res.json();
-        setIssues(data.issues ?? []);
-      } catch {
-        setIssues([]);
-      } finally {
+    const q = query(collection(db, 'issues'), orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        setIssues(
+          snap.docs.map((d) => {
+            const data = d.data();
+            return {
+              id: d.id,
+              ...data,
+              createdAt:
+                (data.createdAt as Timestamp | undefined)?.toMillis() ?? Date.now(),
+              updatedAt:
+                (data.updatedAt as Timestamp | undefined)?.toMillis() ?? Date.now(),
+            } as SerializedIssue;
+          }),
+        );
         setLoading(false);
-      }
-    })();
+      },
+      () => setLoading(false),
+    );
+    return unsub;
   }, []);
 
   const visibleIssues = useMemo(

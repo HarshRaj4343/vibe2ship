@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { draftComplaint } from '@/lib/gemini';
+import { geminiErrorResponse } from '@/lib/api';
 import type { ComplaintDraft } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -69,9 +70,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ complaint, cached: false });
   } catch (err) {
     console.error('Complaint drafting failed:', err);
-    return NextResponse.json(
-      { error: 'Could not draft the complaint. Please try again.' },
-      { status: 500 },
+    return geminiErrorResponse(
+      err,
+      'Could not draft the complaint. Please try again.',
     );
   }
 }

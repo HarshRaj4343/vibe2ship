@@ -119,6 +119,16 @@ This pushes [`firestore.rules`](firestore.rules) and [`firestore.indexes.json`](
 (the composite indexes the geo-dedup and filtered queries need) — no more
 "create index" console clicks.
 
+[`firestore.rules`](firestore.rules) is **production-shaped**: reads are public, but
+writes are field-whitelisted and type-checked, identity/location fields are pinned,
+upvotes are append-only and **client deletes are blocked**. Because the app works
+signed-out and writes go through the client SDK, the tightening is enforced via
+data validation rather than `request.auth`.
+
+> **Seeding note:** `npm run seed` *deletes* existing demo docs first, which the
+> production rules forbid. Seed against the permissive dev rules below, then
+> deploy `firestore.rules` for the demo/production.
+
 #### Required Firestore composite indexes
 
 The geo-dedup query filters by `category` + range on `geohash`. When you first run it, Firestore logs a link to auto-create the index. Or add to `firestore.indexes.json`:

@@ -8,6 +8,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { verifyResolution } from '@/lib/gemini';
+import { geminiErrorResponse } from '@/lib/api';
 import { POINTS } from '@/lib/points';
 import type { ResolutionVerification } from '@/lib/types';
 
@@ -88,9 +89,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ resolution });
   } catch (err) {
     console.error('Resolution verification failed:', err);
-    return NextResponse.json(
-      { error: 'Could not verify the photo. Please try a clearer "after" shot.' },
-      { status: 500 },
+    return geminiErrorResponse(
+      err,
+      'Could not verify the photo. Please try a clearer "after" shot.',
     );
   }
 }

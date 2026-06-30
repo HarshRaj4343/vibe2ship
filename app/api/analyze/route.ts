@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeIssue } from '@/lib/gemini';
+import { geminiErrorResponse } from '@/lib/api';
 
 export const runtime = 'nodejs';
 
@@ -25,9 +26,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ analysis });
   } catch (err) {
     console.error('Gemini analysis failed:', err);
-    return NextResponse.json(
-      { error: 'AI analysis failed. Please try again with a clearer photo.' },
-      { status: 500 },
+    return geminiErrorResponse(
+      err,
+      'AI analysis failed. Please try again with a clearer photo.',
     );
   }
 }

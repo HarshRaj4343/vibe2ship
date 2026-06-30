@@ -1,4 +1,8 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import {
+  GoogleGenerativeAI,
+  type GenerativeModel,
+  type GenerateContentResult,
+} from '@google/generative-ai';
 import type {
   IssueAnalysis,
   ResolutionVerification,
@@ -14,6 +18,72 @@ if (!apiKey) {
 }
 
 const genAI = new GoogleGenerativeAI(apiKey ?? '');
+
+/**
+ * A model call failed because we hit Gemini's free-tier quota / rate limit.
+ * Carries an optional `retryAfterMs` (from the server's RetryInfo) so the API
+ * route can tell the user how long to wait. Routes map this to HTTP 429 rather
+ * than a generic 500, so "judges hammering the demo" degrades gracefully.
+ */
+export class GeminiQuotaError extends Error {
+  retryAfterMs?: number;
+  constructor(message: string, retryAfterMs?: number) {
+    super(message);
+    this.name = 'GeminiQuotaError';
+    this.retryAfterMs = retryAfterMs;
+  }
+}
+
+/** True for transient overload / rate-limit / quota responses worth retrying. */
+function isTransient(msg: string): boolean {
+  return /\b(503|429|500)\b|overload|high demand|unavailable|rate|quota/i.test(msg);
+}
+
+function isQuota(msg: string): boolean {
+  return /\b429\b|quota|rate.?limit|resource.?exhausted/i.test(msg);
+}
+
+function suggestedDelayMs(msg: string): number {
+  const m = msg.match(/retry(?:Delay)?["':\s]+(\d+(?:\.\d+)?)s/i);
+  return m ? Math.ceil(parseFloat(m[1]) * 1000) : 0;
+}
+
+/**
+ * Wraps a single `model.generateContent(...)` with bounded exponential backoff.
+ * Gemini Flash intermittently returns 503/429 under load; without this a single
+ * blip would surface as a broken UI. After exhausting retries on a quota error,
+ * throws a typed `GeminiQuotaError` so routes can respond with 429 + Retry-After.
+ */
+async function generateWithRetry(
+  model: GenerativeModel,
+  parts: Parameters<GenerativeModel['generateContent']>[0],
+  maxRetries = 3,
+): Promise<GenerateContentResult> {
+  let lastErr: unknown;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await model.generateContent(parts);
+    } catch (err) {
+      lastErr = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!isTransient(msg) || attempt === maxRetries) {
+        if (isQuota(msg)) {
+          throw new GeminiQuotaError(
+            'The AI is busy right now (free-tier limit). Try again in a few seconds.',
+            suggestedDelayMs(msg) || undefined,
+          );
+        }
+        throw err;
+      }
+      const backoff = Math.min(
+        Math.max(suggestedDelayMs(msg), 700 * 2 ** attempt),
+        20_000,
+      );
+      await new Promise((r) => setTimeout(r, backoff));
+    }
+  }
+  throw lastErr;
+}
 
 /**
  * Runs the 4-step civic-issue agent pipeline over a single uploaded photo.
@@ -83,7 +153,7 @@ Return this exact JSON structure:
 If isValid is false, still return the full JSON but set category to "other", severity to 1, and explain the rejection in rejectionReason.
 `;
 
-  const result = await model.generateContent([
+  const result = await generateWithRetry(model, [
     prompt,
     {
       inlineData: {
@@ -210,7 +280,7 @@ Return ONLY valid JSON, no markdown:
   "changed": false
 }`;
 
-  const result = await model.generateContent([
+  const result = await generateWithRetry(model, [
     prompt,
     { inlineData: { mimeType, data: imageBase64 } },
   ]);
@@ -268,7 +338,7 @@ Return ONLY valid JSON, no markdown:
   "remainingIssues": "none"
 }`;
 
-  const result = await model.generateContent([
+  const result = await generateWithRetry(model, [
     prompt,
     { inlineData: { mimeType: before.mimeType, data: before.data } },
     { inlineData: { mimeType: after.mimeType, data: after.data } },
@@ -323,7 +393,7 @@ Return ONLY valid JSON, no markdown:
   "body": "<the full letter, with line breaks as \\n>"
 }`;
 
-  const result = await model.generateContent(prompt);
+  const result = await generateWithRetry(model, prompt);
   const p = parseJson<{ subject: string; body: string }>(result.response.text());
   return {
     subject: p.subject || `Civic complaint: ${issue.title}`,
@@ -384,7 +454,7 @@ Return ONLY valid JSON, no markdown:
 }
 Limit topActions to the 5 most urgent.`;
 
-  const result = await model.generateContent(prompt);
+  const result = await generateWithRetry(model, prompt);
   const p = parseJson<CityBriefing>(result.response.text());
   return {
     summary: p.summary || 'No open issues to brief on.',
@@ -422,7 +492,7 @@ Keep "english" concise and report-like (what the issue is and where), suitable
 for filing. If the audio is empty or unintelligible, return empty strings and
 language "unknown".`;
 
-  const result = await model.generateContent([
+  const result = await generateWithRetry(model, [
     { text: prompt },
     { inlineData: { mimeType, data: audioBase64 } },
   ]);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { transcribeVoiceReport } from '@/lib/gemini';
+import { geminiErrorResponse } from '@/lib/api';
 
 export const runtime = 'nodejs';
 
@@ -44,9 +45,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ transcription: result });
   } catch (err) {
     console.error('Voice transcription failed:', err);
-    return NextResponse.json(
-      { error: 'Transcription failed. Please try again.' },
-      { status: 500 },
-    );
+    return geminiErrorResponse(err, 'Transcription failed. Please try again.');
   }
 }

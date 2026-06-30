@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { generateBriefing } from '@/lib/gemini';
+import { geminiErrorResponse } from '@/lib/api';
 import type { CityBriefing } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -60,9 +61,9 @@ export async function GET() {
     return NextResponse.json({ briefing });
   } catch (err) {
     console.error('Briefing generation failed:', err);
-    return NextResponse.json(
-      { error: 'Could not generate the command center briefing.' },
-      { status: 500 },
+    return geminiErrorResponse(
+      err,
+      'Could not generate the command center briefing.',
     );
   }
 }
