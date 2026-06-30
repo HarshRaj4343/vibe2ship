@@ -1,44 +1,74 @@
 'use client';
 
-import { useMemo } from 'react';
-import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
+import { useEffect, useMemo, useRef } from 'react';
+import {
+  APIProvider,
+  Map,
+  AdvancedMarker,
+  useMap,
+  useMapsLibrary,
+} from '@vis.gl/react-google-maps';
 import type { SerializedIssue } from '@/lib/types';
 import { CATEGORY_COLORS } from '@/lib/types';
 
 const DEFAULT_CENTER = { lat: 28.6139, lng: 77.209 }; // New Delhi fallback
 
 /**
- * Lightweight "heat" overlay. Google removed visualization.HeatmapLayer from
- * the Maps JS API in v3.65, so instead of the deprecated layer we render a
- * translucent radial glow per issue (sized/intensified by severity). This needs
- * no extra library and never crashes the map.
+ * Real Google Maps Platform heat layer. We pull the `visualization` library on
+ * demand (`useMapsLibrary`) and drive a native `google.maps.visualization.
+ * HeatmapLayer`, weighting each point by issue severity so genuine hotspots
+ * (clusters of high-severity reports) burn brightest. The layer attaches to the
+ * live map instance via `useMap()` and is torn down on unmount/toggle-off.
  */
-function HeatGlow({ issues }: { issues: SerializedIssue[] }) {
-  return (
-    <>
-      {issues.map((issue) => {
-        const size = 60 + issue.severity * 28;
-        return (
-          <AdvancedMarker
-            key={`heat-${issue.id}`}
-            position={{ lat: issue.lat, lng: issue.lng }}
-            zIndex={1}
-          >
-            <div
-              style={{
-                width: size,
-                height: size,
-                borderRadius: '50%',
-                pointerEvents: 'none',
-                background:
-                  'radial-gradient(circle, rgba(239,68,68,0.55) 0%, rgba(249,115,22,0.35) 40%, rgba(249,115,22,0) 70%)',
-              }}
-            />
-          </AdvancedMarker>
-        );
-      })}
-    </>
-  );
+// The bundled @types/google.maps ships only a partial HeatmapLayer type (no
+// options constructor, no setData). Model the runtime surface we actually use.
+interface RuntimeHeatmapLayer {
+  setData(data: Array<{ location: google.maps.LatLng; weight: number }>): void;
+  setMap(map: google.maps.Map | null): void;
+}
+
+function HeatmapLayer({ issues }: { issues: SerializedIssue[] }) {
+  const map = useMap();
+  const visualization = useMapsLibrary('visualization');
+  const layerRef = useRef<RuntimeHeatmapLayer | null>(null);
+
+  useEffect(() => {
+    if (!map || !visualization) return;
+
+    // The runtime accepts the HeatmapLayerOptions object even though the
+    // bundled type doesn't declare it — construct through a precise cast.
+    const HeatmapLayerCtor = visualization.HeatmapLayer as unknown as new (
+      opts: Record<string, unknown>,
+    ) => RuntimeHeatmapLayer;
+
+    const layer =
+      layerRef.current ??
+      new HeatmapLayerCtor({
+        radius: 38,
+        opacity: 0.75,
+        // Sarvam-on-brand ramp: transparent → sky → blue → orange → red.
+        gradient: [
+          'rgba(56, 189, 248, 0)',
+          'rgba(56, 189, 248, 0.5)',
+          'rgba(59, 130, 246, 0.7)',
+          'rgba(249, 115, 22, 0.85)',
+          'rgba(239, 68, 68, 1)',
+        ],
+      });
+    layerRef.current = layer;
+
+    layer.setData(
+      issues.map((i) => ({
+        location: new google.maps.LatLng(i.lat, i.lng),
+        weight: i.severity, // 1–5 → hotter where severe issues cluster
+      })),
+    );
+    layer.setMap(map);
+
+    return () => layer.setMap(null);
+  }, [map, visualization, issues]);
+
+  return null;
 }
 
 function IssuePins({
@@ -114,7 +144,7 @@ export default function IssueMap({
         disableDefaultUI={false}
         className="h-full w-full"
       >
-        {showHeatmap && <HeatGlow issues={issues} />}
+        {showHeatmap && <HeatmapLayer issues={issues} />}
         <IssuePins issues={issues} onSelect={onSelect ?? (() => {})} />
       </Map>
     </APIProvider>

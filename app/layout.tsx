@@ -3,8 +3,11 @@ import { Inter, Newsreader } from 'next/font/google';
 import Link from 'next/link';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth';
+import { I18nProvider } from '@/lib/i18n';
 import AuthNav from '@/components/AuthNav';
 import MobileNav from '@/components/MobileNav';
+import LanguageToggle from '@/components/LanguageToggle';
+import StatusNotifier from '@/components/StatusNotifier';
 
 const inter = Inter({ subsets: ['latin'] });
 const newsreader = Newsreader({
@@ -38,6 +41,7 @@ export default function RootLayout({
     <html lang="en" className={newsreader.variable}>
       <body className={`${inter.className} min-h-screen text-ink`}>
         <AuthProvider>
+         <I18nProvider>
           <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4">
             <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 rounded-full border border-white/60 bg-gradient-to-r from-sarvam-sky/40 via-sarvam-peach/50 to-sarvam-sky/40 px-4 py-2.5 shadow-[0_8px_30px_-12px_rgba(28,27,46,0.25)] backdrop-blur-xl sm:px-6">
               <Link
@@ -70,6 +74,9 @@ export default function RootLayout({
                     + Report
                   </Link>
                 </div>
+                <span className="hidden sm:block">
+                  <LanguageToggle />
+                </span>
                 <span className="ml-1">
                   <AuthNav />
                 </span>
@@ -78,6 +85,8 @@ export default function RootLayout({
           </header>
           <main className="pb-20 md:pb-0">{children}</main>
           <MobileNav />
+          <StatusNotifier />
+         </I18nProvider>
         </AuthProvider>
       </body>
     </html>

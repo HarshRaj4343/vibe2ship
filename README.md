@@ -1,9 +1,27 @@
 # UrbanPulse
 
-> Hyperlocal civic issue reporting powered by **Gemini Vision**, **Firebase Firestore**, **Google Maps**, and **Cloud Run**.
+> Hyperlocal civic issue reporting built end-to-end on Google: **Gemini** (Vision + function calling), **Firebase Firestore**, **Firebase Auth**, **Firebase Cloud Messaging**, **Google Maps Platform**, **Google Cloud Translation API**, **Cloud Run**, **Cloud Build**, and **Cloud Scheduler**.
 > Built for the **Vibe2Ship hackathon** (Coding Ninjas × Google for Developers).
 
 Citizens photograph neighborhood problems (potholes, water leaks, broken streetlights, waste dumps). A 4-step AI agent **validates → categorizes → severity-scores → routes** each report, deduplicates it against nearby reports, and tracks it to resolution — while gamifying participation with points and badges.
+
+## ☁️ Google technologies used
+
+Every layer of UrbanPulse runs on a Google product:
+
+| Product | Where it's used |
+|---------|-----------------|
+| **Gemini 2.5 Flash — Vision** | The 4-step triage pipeline reads the photo to validate, categorize, severity-score and route ([`lib/gemini.ts`](lib/gemini.ts)). Also: before/after resolution verification, complaint drafting, and the multilingual voice intake (audio → text). |
+| **Gemini — function calling** | The autonomous intake agent ([`lib/agent.ts`](lib/agent.ts)) drives a real Gemini tool-use loop: the model itself calls `find_duplicate_issue`, `critique_analysis`, `lookup_resolution_history`, `route_to_department`, `create_issue`, `award_points`. |
+| **Firebase Firestore** | Single datastore for issues, users, upvotes (photos stored inline as data URLs). |
+| **Firebase Auth** | Google sign-in popup; the app also works signed-out via a stable anonymous browser id that upgrades on login. |
+| **Firebase Cloud Messaging** | Push notifications when a citizen's reported issue changes status — wired to a real-time Firestore `onSnapshot` listener so updates land with no refresh ([`lib/messaging.ts`](lib/messaging.ts), [`components/StatusNotifier.tsx`](components/StatusNotifier.tsx)). |
+| **Google Maps Platform** | Live map with category-colored pins **and a native `visualization.HeatmapLayer`** weighting hotspots by issue severity ([`components/IssueMap.tsx`](components/IssueMap.tsx)). |
+| **Google Cloud Translation API** | Hindi/English bilingual UI — flip the EN/हिं toggle and every `<T>`-wrapped string is translated on demand and cached ([`app/api/translate/route.ts`](app/api/translate/route.ts), [`lib/i18n.tsx`](lib/i18n.tsx)). |
+| **geofire-common (geohash)** | Geohash-bounded Firestore queries power the 200m geo-dedup, since Firestore has no native radius query ([`lib/geo.ts`](lib/geo.ts)). |
+| **Cloud Run** | Hosts the standalone Next.js container (port 3080). |
+| **Cloud Build** | `cloudbuild.yaml` builds → pushes → deploys the image. |
+| **Cloud Scheduler** | Recommended to fire the Command Center briefing (`GET /api/briefing`) on a daily cron so the municipal action plan is ready each morning. |
 
 ---
 
@@ -38,14 +56,17 @@ The agent doesn't just classify — it **acts** and **closes the loop**:
 | Layer | Tech |
 |-------|------|
 | Framework | Next.js 14 (App Router, TypeScript) |
-| AI | Gemini 2.5 Flash via `@google/generative-ai` (vision + text) |
+| AI | Gemini 2.5 Flash via `@google/generative-ai` (Vision + text + **function calling**) |
 | Database | Firebase Firestore (photos stored inline as data URLs) |
-| Maps | `@vis.gl/react-google-maps` (pins + CSS heat overlay) |
-| Voice | Web Speech API (Chrome / Google speech engine) |
+| Auth | Firebase Auth (Google sign-in; anonymous fallback) |
+| Push / real-time | Firebase Cloud Messaging + Firestore `onSnapshot` |
+| Maps | Google Maps Platform via `@vis.gl/react-google-maps` (pins + native `visualization.HeatmapLayer`) |
+| Translation | Google Cloud Translation API (Hindi/English UI) |
+| Voice | Gemini multimodal (audio → text), in-browser recording |
 | Geo | `geofire-common` (geohash radius queries) |
 | Charts | Recharts |
 | Styling | Tailwind CSS |
-| Hosting | Google Cloud Run |
+| Hosting / CI | Google Cloud Run + Cloud Build (+ Cloud Scheduler for the briefing cron) |
 
 ---
 
@@ -68,7 +89,9 @@ Fill in:
 - `GEMINI_API_KEY` — from [Google AI Studio](https://aistudio.google.com)
 - `NEXT_PUBLIC_FIREBASE_*` — Firebase Console → Project Settings → Your apps
 - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` — Google Cloud Console → APIs & Services → Credentials
-  - Enable **Maps JavaScript API** (the heat overlay is pure CSS — no Visualization library needed)
+  - Enable **Maps JavaScript API** + **Maps Visualization** (the hotspot heatmap uses the native `visualization.HeatmapLayer`)
+- `NEXT_PUBLIC_FIREBASE_VAPID_KEY` — Firebase Console → Project Settings → Cloud Messaging → Web Push certificates (for FCM status-change push)
+- `GOOGLE_TRANSLATE_API_KEY` — server-only API key with the **Cloud Translation API** enabled (Hindi/English UI; leave blank to stay English)
 
 ### 3. Firebase setup
 
@@ -158,7 +181,9 @@ npm run dev
 | `/api/upvote` | POST | Upvote (one per user) + award points |
 | `/api/verify-resolution` | POST | Before/after photo comparison → confirm fix |
 | `/api/complaint` | POST | Auto-draft formal complaint letter + tracking ID |
-| `/api/briefing` | GET | Command Center: prioritized action plan over all issues |
+| `/api/briefing` | GET | Command Center: prioritized action plan over all issues (wire to **Cloud Scheduler** for a daily cron) |
+| `/api/transcribe` | POST | Gemini multimodal voice intake (Hindi/English audio → text) |
+| `/api/translate` | POST | Google Cloud Translation proxy for the bilingual UI |
 
 ---
 
@@ -220,7 +245,7 @@ After the first deploy, copy the service URL into `NEXT_PUBLIC_APP_URL` and (opt
 ## 🏆 How it maps to the judging criteria
 
 - **Agentic Depth (20%)** — the 4-step Gemini pipeline + autonomous dedup/routing.
-- **Google Technologies (15%)** — Gemini, Firestore, Storage, Maps JS API, Cloud Run.
+- **Google Technologies (15%)** — Gemini (Vision + function calling), Firestore, Firebase Auth, Firebase Cloud Messaging, Google Maps Platform (incl. heatmap layer), Cloud Translation API, geohash geo-queries, Cloud Run, Cloud Build, Cloud Scheduler.
 - **Problem Solving & Impact (20%)** — real civic workflow from report to resolution.
 - **Innovation (20%)** — AI triage + geohash dedup + gamification loop.
 - **Product Experience (10%)** — mobile-first report flow, live map, dashboard.

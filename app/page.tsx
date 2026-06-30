@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import LandingStats from '@/components/LandingStats';
 import Reveal from '@/components/Reveal';
+import { T } from '@/lib/i18n';
 import { Search, Radar, Mail, Mic, RotateCw, BarChart3 } from '@/components/icons';
 
 const PIPELINE = [
@@ -95,20 +96,22 @@ export default function Home() {
             className="mt-6 animate-fade-up font-medium text-sarvam-blue"
             style={{ animationDelay: '60ms' }}
           >
-            India&apos;s civic resolution agent
+            <T>India&apos;s civic resolution agent</T>
           </p>
           <h1
             className="mx-auto mt-5 max-w-3xl animate-fade-up font-serif text-5xl font-medium leading-[1.05] tracking-tight text-ink sm:text-7xl"
             style={{ animationDelay: '140ms' }}
           >
-            Civic action for all
+            <T>Civic action for all</T>
           </h1>
           <p
             className="mx-auto mt-6 max-w-xl animate-fade-up text-lg text-ink/70"
             style={{ animationDelay: '220ms' }}
           >
-            Snap a photo. An autonomous AI agent validates, triages, routes and
-            drafts the complaint — then confirms it was actually resolved.
+            <T>
+              Snap a photo. An autonomous AI agent validates, triages, routes and
+              drafts the complaint — then confirms it was actually resolved.
+            </T>
           </p>
           <div
             className="mt-9 flex animate-fade-up flex-wrap items-center justify-center gap-3"
@@ -118,7 +121,7 @@ export default function Home() {
               href="/report"
               className="btn-primary px-7 py-3.5 transition hover:-translate-y-0.5 hover:shadow-lg"
             >
-              Report an issue
+              <T>Report an issue</T>
             </Link>
             <Link
               href="/command"

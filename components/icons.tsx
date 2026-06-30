@@ -329,3 +329,25 @@ export function PenLine(props: IconProps) {
     </Icon>
   );
 }
+
+export function Bell(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+      <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
+    </Icon>
+  );
+}
+
+export function Languages(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m5 8 6 6" />
+      <path d="m4 14 6-6 2-3" />
+      <path d="M2 5h12" />
+      <path d="M7 2h1" />
+      <path d="m22 22-5-10-5 10" />
+      <path d="M14 18h6" />
+    </Icon>
+  );
+}
