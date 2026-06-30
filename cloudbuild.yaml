@@ -30,6 +30,7 @@ substitutions:
   _MAPS_API_KEY: ''
   _GOOGLE_TRANSLATE_API_KEY: ''
   _APP_URL: ''
+  _VAPID_KEY: ''
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -56,6 +57,8 @@ steps:
       - 'NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${_MAPS_API_KEY}'
       - '--build-arg'
       - 'NEXT_PUBLIC_APP_URL=${_APP_URL}'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_FIREBASE_VAPID_KEY=${_VAPID_KEY}'
       - '-t'
       - 'gcr.io/$PROJECT_ID/${_SERVICE}:$BUILD_ID'
       - '-t'
